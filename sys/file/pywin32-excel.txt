@@ -1,0 +1,147 @@
+import win32com.client
+xlApp = win32com.client.Dispatch("Excel.Application")
+
+wb = xlApp.Workbooks.Open("開くファイル")
+wb.Close()
+wb.Save()
+wb.SaveAs("保存するファイルパスと名前")
+
+xlApp.Visible = 1 (Trueでも可)
+sheet = wb.Worksheets("開きたいシート名(左から1,2,3..のように数字で選択でも可)")
+  
+sheet.Activate() 
+sheet.Select()
+
+wb.Worksheets("選択したいシート名(左から1,2,3..のように数字で選択でも可)").Activate()
+
+  ?シート内のオートシェイプの個数を表示する。
+  　print sheet.Shapes.Count
+  
+  ?オートシェイプを選択する。
+  　sheet.Shapes(1).Select()
+  
+  ?テキストボックス(図形)の文字を表示する。
+  　print sheet.Shapes(1).TextFrame.Characters(1).Text
+  　又は
+sheet.Shapes(1).Select()
+print xlApp.Selection.Characters.Text
+  
+  ?テキストボックス(図形)の文字を入力する。
+  　sheet.Shapes(1).TextFrame.Characters(1).Text = u"入力したい文字を入れる。"
+  　又は
+sheet.Shapes(1).Select()
+print xlApp.Selection.Characters.Text = u"入力したい文字を入れる。"
+
+  ?グループ化、グループ化の解除
+-グループ化解除
+*Shapes(1)にあたるものがグループ化された図形のとき
+group = sheet.Shapes(1).Ungroup()
+for i in group:
+print i.Name
+-グループ化
+　group.Regroup()
+ 
+  ?オートシェイプの形状を判定する。
+  　print sheet.Shapes(1).Type
+#数字が出る。17ならテキストボックス　6ならグループ化図形
+#詳細がぐぐる
+=例外=
+なぜかはわからないが、グループ化解除したオブジェクトにはTypeが異なるため、Nameで文字列判断すること。
+
+  ?テキストボックスのフォントサイズを編集
+#テキストボックス全体をフォントサイズ10にする。
+sheet.Shapes(1).TextFrame.Characters(1).Font.Size = 10
+  　#テキストボックスの中の文字列10文字目～20文字目をフォントサイズ20にする。
+sheet.Shapes(1).TextFrame.Characters(10,20).Font.Size = 20
+
+  ?四角形の大きさ変更
+sheet.Shapes(1).Left = 10#左位置
+sheet.Shapes(1).Top = 10 #上位置
+sheet.Shapes(1).Width = 100  #幅
+sheet.Shapes(1).Height = 100 #高さ
+
+
+ ?Excelブックを新規作成
+xlapp.Workbooks.Add()
+
+ ?Excelブック間のシートをコピーする
+src_workbooks.Worksheets(1).Copy(Before=dst_workbooks.Worksheets(pos))
+#src_sheet : コピー元シート
+#dst_workbooks : コピー先ワークブック
+#Before にすると指定したシートの前にコピー、After にすると指定したシートの後にコピー。
+
+ ?シートの削除
+src_workbooks.Worksheets(1).Delete()
+  
+ ?セルにデータを入力する
+sheets.Range("A4").Value = "入力データ"
+
+  ?セルに線を引く
+sh.Range("A1").Borders(7).LineStyle = 1
+sh.Range("A1").Borders(7).Weight = 2
+sh.Range("A1").Borders(7).ColorIndex = -4105
+#それぞれ数値はExcel上の定数を指定している。わからないときは(Excel 定数)で調べること。
+sh.Range("A1").Borders(7).LineStyle = None
+#線を削除するときはNoneを入れる
+
+  ?行の高さ、列の幅を変更する
+sheet.Rows("1:1").RowHeight = 25
+sheet.Columns("A:A").ColumnWidth = 15
+#上が行の高さ,下が列の幅を変更している。入力する数字は、Excelデフォルトの文字数とのこと
+
+  ?セルの削除
+sheets.Range("E:G").Delete()
+sheets.Range("E1:E8").Delete(Shift = -4159)
+#上が、列全体を削除,下が、指定範囲内を削除し、左に詰めている。
+  
+  ?セルを挿入
+src_sheets.Range("1:3").Copy()
+dst_sheets.Range("10:10").Insert()
+#先にコピーを実行すること。
+
+  ?オートシェイプのコピー
+shape.Copy()
+sheets.Activate()
+sheets.Range("E3").Activate()
+sheets.Paste()
+#セルのアクティブ箇所にコピーされる。アクティブを使うときは、必ずその対象のシートもアクティブにすること。
+
+  ?入力データ全体を取得
+sheets.UsedRange()
+#全てのセル内容がタプルで取得できる。線などでも反応する。空欄にはNoneが入る。
+
+  ?既存の印刷範囲の設定を全て排除
+sheets.ResetAllPageBreaks()
+#新たに印刷範囲を設定するとき、必ず実行すること。過去の設定が残っているとうまい設定されない場合がある。
+
+  ?印刷範囲を設定
+sheets.PageSetup.PrintArea = "$A$1:$F$5"
+
+  ?印刷時の拡大縮小
+sheets.PageSetup.Zoom = False
+sheets.PageSetup.Zoom = 100
+#上が拡大縮小しない。下が、拡大率100%で印刷する設定。　次の縦横のページ枚数設定とは排他にすること。
+
+  ?印刷時に縦横を何ページで印刷するか
+adline_sh.PageSetup.FitToPagesWide = 1
+adline_sh.PageSetup.FitToPagesTall = False
+#上が横幅を1ページで指定。下が、縦幅をページ設定しない設定。
+
+  ?警告メッセージを表示しない。
+xlapp.DisplayAlerts = True 
+"""
+何かの処理
+"""
+xlapp.DisplayAlerts = True 
+#Falseにしている間だけあらゆる警告メッセージを表示しない。
+
+　○TOPICS
+?操作するとpywintypes.com_error[Openメソッドが失敗しました。]が発生する。
+　コマンドを使って開いたときに、2重オープンメッセージやマクロ警告メッセージで
+　オープン処理をキャンセルしたときに発生する。
+　なので、try-exceptでwin32com.cliect.pywintypes.com_errorを捕まえて処理するか、
+　事前にopen関数などで、ファイルオープンを調べて回避するようにするなどの処理が必要になる。
+
+?操作すると[AttributeError]が発生する。
+　コマンドを使って開いたときにExcelでダイアログなどが表示されていて
+　他の操作を受け付けない状態かセルが編集状態になっているときに発生する。

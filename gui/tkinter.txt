@@ -1,0 +1,204 @@
+import Tkinter
+
+root = Tkinter.Tk()
+canv = Tkinter.Canvas(root, width=600, height=210, scrollregion=(0,0,2200,800))
+canv.grid(row=0,column=0)
+scrollY = Tkinter.Scrollbar(root, orient='vertical', command=canv.yview)
+scrollY.grid(row=10,column=11,sticky='ns')
+scrollX = Tkinter.Scrollbar(root, orient='horizontal', command=canv.xview)
+scrollX.grid(row=1,column=0,sticky='ew')
+canv['xscrollcommand']=scrollX.set
+canv['yscrollcommand']=scrollY.set
+
+
+
+
+import Tix
+root = Tix.Tk()
+hl = Tix.HList(root, columns = 5, header = True)
+hl.pack(expand=1, fill=Tix.BOTH, padx=10, pady=10, side=Tix.LEFT)
+hl.header_create(0, text = "File")
+hl.header_create(1, text = "Path")
+hl.header_create(2, text = "ext")
+hl.header_create(3, text = "Size")
+hl.header_create(4, text = "Date")
+
+
+
+scroll = Tkinter.Scrollbar(hl, orient='vertical', width=20)
+scroll.pack(expand='yes', fill='x')
+
+
+
+from Tkinter import *
+
+top = Tk()
+# Code to add widgets will go here...
+top.mainloop()
+
+
+class Application(Frame):
+    def say_hi(self):
+        print "hi there, everyone!"
+    def createWidgets(self):
+        self.QUIT = Button(self)
+        self.QUIT["text"] = "QUIT"
+        self.QUIT["fg"]   = "red"
+        self.QUIT["command"] =  self.quit
+        self.QUIT.pack({"side": "left"})
+        self.hi_there = Button(self)
+        self.hi_there["text"] = "Hello",
+        self.hi_there["command"] = self.say_hi
+        self.hi_there.pack({"side": "left"})
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
+        self.pack()
+        self.createWidgets()
+
+root = Tk()
+app = Application(master=root)
+app.mainloop()
+root.destroy()
+
+
+from Tkinter import *
+import Tkinter
+top = Tkinter.Tk()
+B1 = Tkinter.Button(top, text ="FLAT", relief=FLAT )
+B2 = Tkinter.Button(top, text ="RAISED", relief=RAISED )
+B3 = Tkinter.Button(top, text ="SUNKEN", relief=SUNKEN )
+B4 = Tkinter.Button(top, text ="GROOVE", relief=GROOVE )
+B5 = Tkinter.Button(top, text ="RIDGE", relief=RIDGE )
+B1.pack()
+B2.pack()
+B3.pack()
+B4.pack()
+B5.pack()
+top.mainloop()
+
+import Tix
+from Tkconstants import *
+root = Tix.Tk()
+root.tk.eval('package require Tix')
+
+
+root = Tix.Tk()
+# setup HList
+hl = Tix.HList(root, columns = 5, header = True)
+
+hl.pack(expand=1, fill=Tix.BOTH, padx=10, pady=10, side=Tix.LEFT)
+
+hl.header_create(0, text = "File")
+hl.header_create(1, text = "Date")
+hl.header_create(2, text = "Size")
+# create a multi-column row
+hl.add("row1", text = "filename.txt")
+hl.item_create('row1', 1, text = "2009-03-26 21:07:03")
+hl.item_create('row1', 2, text = "200MiB")
+
+hl.header_create(3, text = "Path")
+hl.item_create('row1', 3, text = "c:\\")
+hl.add("row2", text = "2filename.txt")
+hl.item_create('row2', 1, text = "22009-03-26 21:07:03")
+hl.item_create('row2', 2, text = "2200MiB")
+hl.item_create('row2', 3, text = "2c:\\")
+
+for i in range(10):
+  hl.add("row%i"%(i+3), text = "%ifilename.txt"%i)
+  hl.item_create('row%i'%(i+3), 1, text = "22009-03-26 21:07:03")
+  hl.item_create('row%i'%(i+3), 2, text = "2200MiB")
+  hl.item_create('row%i'%(i+3), 3, text = "2c:\\")
+
+
+root = Tix.Tk()
+tree = Tix.Tree(master=root, options='seperator "."')
+tree.pack(expand=1, fill=Tix.BOTH, padx=10, pady=10, side=Tix.LEFT)
+
+#fill the tree with our values
+tree.hlist.add('one', text='one')
+tree.hlist.add('two', text='two')
+tree.hlist.add('two.three',text='three')
+tree.hlist.add('two.four',text='four')
+
+
+root = Tix.Tk()
+
+Tix.Tree(rootWindow, options='hlist.columns 5 hlist.header 1 seperator "."')
+tree.tk.call('tix', 'configure', '-fontset', 'WmDefault')
+boldfont=tree.tk.call('tix','option','get','bold_font')
+style={}
+style['header'] = Tix.DisplayStyle(Tix.TEXT,refwindow=tree.hlist, anchor=Tix.CENTER,padx=8,pady=2,font=boldfont)
+
+tree.hlist.header_create(0,itemtype=Tix.TEXT, text='Position',style=style['header'])
+tree.hlist.header_create(1,itemtype=Tix.TEXT, text='HostName',style=style['header'])
+
+tree.hlist.column_width(0, chars=10)
+tree.hlist.column_width(1, chars=20)
+
+tree.setmode(nodeElement, 'open')
+
+
+
+
+from Tkinter import *
+
+class Application(Frame):                           
+  def __init__(self, master = None):
+    Frame.__init__(self, master)
+    self.grid()
+    self.createWidget()
+  def createWidgets(self):
+    self.quitButton = Button(self, text = 'Quit', command=self.quit)
+    self.quitButton.grid()
+
+app = Application()
+app.master.title('Sample application')
+app.mainloop()
+
+
+
+
+
+
+
+
+import Tkinter
+
+class simpleapp_tk(Tkinter.Tk):
+    def __init__(self,parent):
+        Tkinter.Tk.__init__(self,parent)
+        self.parent = parent
+        self.initialize()
+    def initialize(self):
+        self.grid()
+        self.entryVariable = Tkinter.StringVar()
+        self.entry = Tkinter.Entry(self,textvariable=self.entryVariable)
+        self.entry.grid(column=0,row=0,sticky='EW')
+        self.entry.bind("<Return>", self.OnPressEnter)
+        self.entryVariable.set(u"Enter text here.")
+        button = Tkinter.Button(self,text=u"Click me !", command=self.OnButtonClick)
+        button.grid(column=1,row=0)
+        self.labelVariable = Tkinter.StringVar()
+        label = Tkinter.Label(self,textvariable=self.labelVariable,anchor="w",fg="white",bg="blue")
+        label.grid(column=0,row=1,columnspan=2,sticky='EW')
+        self.labelVariable.set(u"Hello !")
+        self.grid_columnconfigure(0,weight=1)
+        self.resizable(True,False)
+        self.update()
+        self.geometry(self.geometry())       
+        self.entry.focus_set()
+        self.entry.selection_range(0, Tkinter.END)
+    def OnButtonClick(self):
+        self.labelVariable.set( self.entryVariable.get()+" (You clicked the button)" )
+        self.entry.focus_set()
+        self.entry.selection_range(0, Tkinter.END)
+    def OnPressEnter(self,event):
+        self.labelVariable.set( self.entryVariable.get()+" (You pressed ENTER)" )
+        self.entry.focus_set()
+        self.entry.selection_range(0, Tkinter.END)
+
+if __name__ == "__main__":
+    app = simpleapp_tk(None)
+    app.title('my application')
+    app.mainloop()
+

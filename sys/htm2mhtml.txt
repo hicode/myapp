@@ -1,0 +1,37 @@
+# --2010.01.09--
+# --PM 08:12--
+# --ActivePython 2.6.4.8--
+# --Windows XP 32--
+# --xialulee.spaces.live.com--
+# --html2mht.py
+
+from __future__ import print_function
+from win32com.client import Dispatch
+import sys
+import os
+
+if __name__ == '__main__':
+    file_list = []
+    file_list.extend(sys.argv[1:])
+    if not file_list:
+        file_list.extend(sys.stdin.read().split('\n'))
+    try:
+        iMsg = Dispatch('CDO.Message')
+        for file in file_list:
+            if not file:
+                continue
+            try:
+                iMsg.CreateMHTMLBody('file:///' + file)
+                iMsg.GetStream().SaveToFile(os.path.splitext(file)[0]+'.mht')
+            except:
+                print('Cannot save file:', file, file=sys.stderr)
+    finally:
+        del iMsg
+
+
+
+脚本接受任意个参数，每个参数必须是硬盘上保存的Html文件的完整路径，如下会在c:\lab\html里生成一个x1.mht文件：
+	python html2mht.py c:\lab\html\x1.html
+
+如果不指定参数，则脚本会从stdin读取文本并当作文件的路径，所以可以使用下面的方法将一个文件夹内的html文件批量转换成mht文件：
+	C:\LAB>(for %I in (c:\lab\html\*.htm*) do @echo %~fI) | python html2mht.py

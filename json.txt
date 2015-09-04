@@ -1,0 +1,45 @@
+import json
+obj = {u"answer": [42.2], u"abs": 42}
+print(json.dumps(obj))
+print(json.dumps(obj, indent=4))
+
+import json
+obj_json = u'{"answer": [42.2], "abs": 42}'
+obj = json.loads(obj_json)
+print(repr(obj))
+
+#  For most object types, eval(repr(object)) == object
+
+
+
+
+# we cannot store arbitrary Python objects in JSON, it can only store the following objects:
+# character strings / numbers / booleans (True/False) / None / lists / dictionaries with character string keys
+class User(object):
+    def __init__(self, name, password):
+        self.name = name
+        self.password = password
+
+alice = User('Alice A. Adams', 'secret')
+
+#converting above object to JSON will fail
+json.dumps(alice)
+
+# hook for conversion is needed , Simply define a default method.:
+def jdefault(o):
+    return o.__dict__
+print(json.dumps(alice, default=jdefault))
+# outputs: {"password": "secret", "name": "Alice A. Adams"}
+
+
+# o.__dict__ is a simple catch-all only for user-defined objects, 
+pets = set([u'Tiger', u'Panther', u'Toad'])
+print(json.dumps(pets, default=jdefault))
+# we can support other objects. For example, let¡¯s add support for sets by treating them like lists:
+def jdefault(o):
+    if isinstance(o, set):
+        return list(o)
+    return o.__dict__
+
+print(json.dumps(pets, default=jdefault))
+

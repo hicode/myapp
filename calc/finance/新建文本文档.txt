@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# gets the days executions and plots on candlestick chart
+
+from ib.ext.Contract import Contract
+from ib.ext.ExecutionFilter import ExecutionFilter
+from ib.opt import ibConnection, message
+
+from matplotlib.finance import candlestick2
+from matplotlib.ticker import Formatter
+
+import time
+import pylab as p
+
+class minuteFormatter(Formatter):
+    def __init__(self, dates, fmt='%H:%M'):
+        self.dates = dates
+        self.fmt = fmt
+
+    def __call__(self, x, pos=0):
+        'Return the label for time x at position pos'
+        ind = int(round(x))
+        if ind>=len(self.dates) or ind<0: return ''
+
+        return time.strftime(self.fmt, time.localtime(int(self.dates[ind])))
+
+#-- message handlers---------------------------------------------------------
+
+# print all messages from TWS
+def watcher(msg):
+    print msg
+def getDataHandler(msg):
+    global dates,opens,highs,lows,closes
+    if int(msg.high) > 0:
+        dates.append(msg.date)
+        opens.append(msg.open)
+        closes.append(msg.close)
+        highs.append(msg.high)
+        lows.append(msg.low)
+    else:
+        con.meFinished = True
+
+def ExecutionDetailsHandler(msg):
+    global execDetails
+    execDetails.append(msg.execution)
+
+#-- factories-----------------------------------------------------------------
+
+def makeExecFilter():
+    filter=ExecutionFilter()
+    return filter
+def makeESContract():
+    es = Contract()
+    es.m_symbol = 'SPXU'
+    es.m_secType = 'STK'
+    es.m_exchange = 'SMART'
+    es.m_expiry = '200909'
+    es.m_currency = 'USD'
+    es.m_strike = 0.0
+    es.m_right = ''
+##    es.m_localSymbol = 'ESM9'
+##    es.m_secType = 'FUT'
+##    es.m_exchange = 'GLOBEX'
+    return es
+#-- utilities----------------------------------------------------------------
+def convertExecTime(eTime):
+    stdTime=time.strptime(eTime,"%Y%m%d  %H:%M:%S")
+    return time.mktime(stdTime)
+def execLocator(execution):
+    global dates
+    eTime=convertExecTime(execution.m_time)
+    ind=int((eTime-float(dates[0]))/60.)
+    return ind
+def getData(contract):
+    global dates,opens,highs,lows,closes
+    con.meFinished=False
+    dates=[]
+    opens=[]
+    highs=[]
+    lows=[]
+    closes=[]
+    con.reqHistoricalData(1, contract, '', '1 D','1 min','TRADES', 1,2)
+    countSecs = 0
+    while not con.meFinished and countSecs < 10: # give up after 10 seconds
+        time.sleep(1)
+        countSecs += 1
+    if con.meFinished==True:
+        print 'Data download successfull'
+    else:
+        print 'time ran out - error loading data'
+def getExecutions():
+    global execDetails
+    filter=makeExecFilter()
+    execDetails=[]
+    con.reqExecutions(filter)
+def plotData():
+    global dates,opens,highs,lows,closes,execDetails
+    left,width=0.05,0.9
+    bot,height=.05,.9
+    rect = [left, bot, width, height]
+    f=p.figure(1,figsize=(16,12))
+    a=p.axes(rect)
+    formatter =  minuteFormatter(dates)
+    a.xaxis.set_major_formatter(formatter)
+    candlestick2(a, opens, closes, highs, lows, width=0.9)
+    angle=-90
+    integer=-1
+    totalNet=0
+    for eD in execDetails:
+        if integer==-1:
+            angle2=0
+        else:
+            angle2=180
+        index=execLocator(eD)
+        label='%s:%.2f'%(eD.m_side,eD.m_price)
+        if integer==1:
+            if eD.m_side=='BOT':
+                net=lastPrice-eD.m_price
+            else:
+                net=eD.m_price-lastPrice
+            label+=',Net: %.2f'%net
+            totalNet+=net
+        textPos=(index-10+integer*10,eD.m_price+integer*6.5)
+        a.annotate(label,
+                   xy=(index,eD.m_price),xycoords='data',
+                    xytext=textPos,textcoords='data',
+                    arrowprops=dict(arrowstyle="->",
+                    connectionstyle="angle,angleA=%i,angleB=%i,rad=10"%(angle*integer,angle2)))
+        integer*=-1
+        lastPrice=eD.m_price
+
+    #a.set_xlim((-.5, max(len(closes),textPos[0]+11)))
+    date=time.strftime('%m-%d-%y', time.localtime(int(dates[0])))
+    title=date
+    if totalNet>0:
+        title+=', Net:%.2f'%totalNet
+    p.title(title,fontsize=15)
+    p.savefig('%s.png'%date)
+
+if __name__ == "__main__":
+    con = ibConnection()
+    con.registerAll(watcher)
+    con.unregister(watcher, 'ExecDetails')
+    con.unregister(watcher,message.HistoricalData)
+
+    con.register(ExecutionDetailsHandler, 'ExecDetails')
+    con.register(getDataHandler,message.HistoricalData)
+
+    con.connect()
+    ct=makeESContract()
+    getData(ct)
+    getExecutions()
+    time.sleep(5)
+    plotData()
+    con.disconnect()

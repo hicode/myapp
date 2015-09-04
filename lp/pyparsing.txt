@@ -1,0 +1,12 @@
+from pyparsing import Word, alphas, nums
+
+greet = Word( alphas ) + "," + Word( alphas ) + "!"
+greeting = greet.parseString( "Hello, World!" )
+print greeting
+
+
+integer  = Word( nums )            # simple unsigned integer
+variable = Word( alphas, max=1 )   # single letter variable, such as x, z, m, etc.
+arithOp  = Word( "+-*/", max=1 )   # arithmetic operators
+equation = variable + "=" + integer + arithOp + integer    # will match "x=2+2", etc.
+

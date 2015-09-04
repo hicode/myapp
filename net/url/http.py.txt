@@ -1,0 +1,30 @@
+import urllib2
+
+content = urllib2.urlopen('http://www.google.com').read()
+content = urllib2.urlopen('http://www.verycd.com').read()
+content = urllib2.urlopen('http://www.baidu.com').read()
+
+
+#proxy proxy.huawei.com:8080
+proxy_support = urllib2.ProxyHandler({'http':'http://proxy.huawei.com:8080'})
+opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+urllib2.install_opener(opener)
+content = urllib2.urlopen('http://www.google.com').read()
+content = urllib2.urlopen('http://hi3ms.huawei.com').read()
+content = urllib2.urlopen('http://XXXX').read()
+
+
+#cookie
+import cookielib
+cookie_support= urllib2.HTTPCookieProcessor(cookielib.CookieJar())
+opener = urllib2.build_opener(cookie_support, urllib2.HTTPHandler)
+urllib2.install_opener(opener)
+content = urllib2.urlopen('http://XXXX').read()
+
+opener = urllib2.build_opener(proxy_support, cookie_support, urllib2.HTTPHandler)
+
+
+#login
+
+
+content = urllib2.urlopen('http://hi3ms.huawei.com').read()

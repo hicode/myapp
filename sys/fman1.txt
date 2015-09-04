@@ -1,0 +1,105 @@
+# get list of root directory    # get file filters
+# get all file information
+# store file information in a db?
+# index seg of fn
+
+# monitor of change???
+
+# search GUI ? 
+# get input for search
+# name : more than 1 character
+# size/time
+# op? fuzzy? 
+
+import scandir
+
+def get_filepaths(directory):
+    file_paths = []  # List which will store all of the full filepaths.
+    for path, subdirs, files in scandir.walk(directory):
+        for filename in files:
+            filepath = (filename, path)  # better to include extension in fn as a single search target (but seg particluarly )
+            # fd = [root]            # fn = filename.rsplit('.', 1)             # if len(fn)==1 then fn.append('')
+            # fd.append( fn )   # bad split if some system have no concept of posfix and take . as a normal char
+            ## Join the two strings in order to form the full filepath.
+            ## os.path.join(root, filename)
+            file_paths.append(filepath)  # Add it to the list.
+    return file_paths  # Self-explanatory.
+
+mypath='d:\\'
+fL = get_filepaths(mypath)
+
+import sqlite3
+conn = sqlite3.connect(r'd:\testfmd.db')
+cur = conn.cursor()
+
+cur.execute( 'drop table if exists filelist' )  # include extension in fn as a single search target (but seg particluarly )
+cur.execute( 'create table if not exists filelist(fn, path)' )  # include extension in fn as a single search target (but seg particluarly )
+conn.commit()
+
+cur.executemany( 'insert into filelist values (?,?)', fL )
+conn.commit()
+
+cur.execute( 'drop table if exists seglist' )  # include extension in fn as a single search target (but seg particluarly )
+cur.execute( 'create table if not exists seglist(seg, fn)' )  # include extension in fn as a single search target (but seg particluarly )
+conn.commit()
+
+def rSubstr(string):
+    a=[] #set()
+    # better if 2-bytes coding can be identified
+    for leftTrunc in range(len(string)):
+      a.append(string[leftTrunc:])
+    return a
+
+
+def segStr(string, minl=0, maxl=-1):  # value of len para is str's max index, actual length is 1 + para value
+    a=[] #set()
+    tmp = string.rsplit( '.', 1 )
+    if len(tmp)>1:
+      a.append( tmp[1] )
+    a.extend( rSubstr(tmp[0]) )
+    return a
+
+segFnList = []
+for fn,path in fL:
+  segList = segStr(fn)
+  for seg in segList:
+    segFnList.append( (seg,fn) )
+
+cur.executemany( 'insert into seglist values (?,?)', list( set(segFnList) ) )
+conn.commit()
+
+
+
+
+
+
+mypath='c:\\'
+fL = get_filepaths(mypath)
+cur.executemany( 'insert into filelist values (?,?)', fL )
+conn.commit()
+
+segFnList = []
+for fn,path in fL:
+  segList = rSubstr(fn)
+  for seg in segList:
+    segFnList.append( (seg,fn) )
+
+cur.executemany( 'insert into seglist values (?,?)', list( set(segFnList) ) )
+conn.commit()
+
+
+
+
+
+
+cur.execute( "select * from seglist where seg like 'split%' " )
+for r in cur.fetchall():
+  print r
+
+
+cur.execute( "create index if not exists seglist_fn on seglist (fn)" )
+cur.execute( "create index if not exists seglist_seg on seglist (seg)" )
+
+cur.execute( "create index if not exists filelist_fn on filelist (fn)" )
+cur.execute( "create index if not exists filelist_path on filelist (path)" )
+

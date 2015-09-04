@@ -1,0 +1,61 @@
+[python-chinese] 想从图片文件中识别出文字有什么好的python库？
+Shao Feng sevenever在gmail.com 
+星期四 九月 13 16:13:44 HKT 2007 
+
+上一条消息 [python-chinese] 想从图片文件中识别出文字有什么好的python库？ 
+下一条消息 [python-chinese] 想从图片文件中识别出文字有什么好的python库？ 
+信息排序方式: [ 日期 ] [ 线索 ] [ 主题 ] [ 作者 ] 
+
+--------------------------------------------------------------------------------
+
+有没有对中文支持比较好的？刚才试用了一下pytesser，一副包含中文的图片被识别成了乱码。
+
+On 9/13/07, Jiahua Huang <jhuangjiahua在gmail.com> wrote:
+>
+> python 有一些 OCR 库，如
+> libhocr-python - Hebrew OCR library Python bindings
+>
+> 或者 os.popen() 调用命令行 OCR 工具，如
+> gocr - A command line OCR
+> ocrad - Optical Character Recognition program
+> tesseract-ocr - Command line OCR tool
+> _______________________________________________
+> python-chinese
+> Post: send python-chinese在lists.python.cn
+> Subscribe: send subscribe to python-chinese-request在lists.python.cn
+> Unsubscribe: send unsubscribe to  python-chinese-request在lists.python.cn
+> Detail Info: http://python.cn/mailman/listinfo/python-chinese
+-------------- 下一部分 --------------
+一个HTML附件被移除...
+URL: http://python.cn/pipermail/python-chinese/attachments/20070913/28a37fc1/attachment-0001.html 
+
+
+--------------------------------------------------------------------------------
+
+
+上一条消息 [python-chinese] 想从图片文件中识别出文字有什么好的python库？ 
+下一条消息 [python-chinese] 想从图片文件中识别出文字有什么好的python库？ 
+信息排序方式: [ 日期 ] [ 线索 ] [ 主题 ] [ 作者 ] 
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+最近一直在用UltraEdit写程序，默认字体一直没改，就盯着宋体的英文看了一个多礼拜。虽然说某位达人经常用Times New Roman这种字体来写程序，而且还是在Word里面写，但是我是到不了那个境界了，所以就去网上找了点儿字体下来用。这里推荐一个网站http://www.lowing.org/fonts/，上面有不少挺不错的字体提供下载。看腻了Courier、Courier New，对Terminal不感冒又不能忍SimSun的朋友可以去看看，说不定会有意外的惊喜。 
+
+摘抄了一个编程用字体选择标准，供各位参考： 
+1. 所有字符等宽； 
+2. 简洁、清晰、规范的字符形体； 
+3. 支持ASCII码为128以上的扩展字符集； 
+4. 空白字符(ASCII: 0x20)与其他字符等宽； 
+5. '1'、'l'和'i'等三个字符易于区分； 
+6. '0'、'o'和'O'等三个字符易于区分； 
+7. 双引号、单引号的前后部分易于区分，最好是镜像对称的； 
+8. 清晰的标点符号外形，尤其是大括符、圆括符和方括符。
+

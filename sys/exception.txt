@@ -1,0 +1,44 @@
+import scandir
+import pprint
+import os
+
+fn1=r'D:\Ñ¸À×ÏÂÔØ\B52--Bellissima Topa Si Fa Scopare E Inculare --Sex,Amatoriale Toys Anal, Blow Job, Orgy Porn Clear Video Slut Cunt Sex Anal Teen Tits Ass Cum Asian Young Dildo Incest Lolita Mature Anal Oral Ass Lingerie Fuck Older -'
+fp1=open(fn1)
+ss1=fp1.read()
+
+try:
+  f=r'D:\Ñ¸À×ÏÂÔØ\B52--Bellissima Topa Si Fa Scopare E Inculare --Sex,Amatoriale Toys Anal, Blow Job, Orgy Porn Clear Video Slut Cunt Sex Anal Teen Tits Ass Cum Asian Young Dildo Incest Lolita Mature Anal Oral Ass Lingerie Fuck Older '
+  fl=[f,fn1]
+  for i in range(2):
+    if os.path.exists(fl[i]):
+      print scandir.lstat(fl[i])
+      print 'ok ', i
+    else:
+      print 'not exists ',i
+    #x=1/0
+except WindowsError, ex:  #except ex: can't get ex without correct exception type?
+  print ex
+  print 'except'
+  print os.strerror(ex.errno) 
+  #pprint.pprint(WindowsError.errno.errorcode)
+  #pprint.pprint(WindowsError.strerror)
+  #pprint.pprint(WindowsError.winerror)
+  resume
+
+
+for :
+  try
+    lstat
+  excep
+
+x=1/0
+
+import sys
+sys.exc_info()
+
+try:
+  float('abc123')
+except:
+  import sys
+  exc_tuple = sys.exc_info()
+

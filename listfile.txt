@@ -1,0 +1,63 @@
+{
+u'A20-List of Sites CDMA-GSM Combined': {}, 
+u'Annex C8-Listado de Sitios Integrados (include in A20 ???)': {}, 
+u'A4-531 Sites Configuration & KPI': 
+	{u'BTS_Configuration': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Traffic': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Data_Traffic': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Call_Profile': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'KPI%': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A14-3G_2G And LTE_Currents_inputs-poligons !!!.xlsx': 
+	{u'Phase I': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:2G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:4G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:4G', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A1-Data_BASE_RADIO_ACCESS_NETWORK': 
+	{u'SITES DB': [u'4,1', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A15-300 New Sites Deployment by Phases': 
+	{u'Phase I': [u'1,0', u'divided,named', u'A-G:2G', u'I-O:3G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'1,0', u'divided,named', u'A-G:2G', u'I-O:3G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'1,0', u'divided,named', u'A-G:3G', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'VIVA  Analysis.xlsx': 
+	{u'Capacity table': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'Annex C2 - Explanation About The Deployment and The Relative Phases': 
+	{u'Phase I': [u'15,0', u'divided,named', u'A-G:NEW2G', u'I-O:UP3G', u'Q-W:NEW3G', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'15,0', u'divided,named', u'A-G:NEW2G', u'I-O:UP3G', u'Q-W:NEW3G', u'Y-AE:UP4G', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'15,0', u'divided,named', u'A-G:UP3G', u'I-O:NEW3G', u'Q-W:UP4G', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'Mw Links': {}, 
+u'SITES SUMMARY Project Viva 2014-2016.xlsx': {}
+}
+
+
+{
+u'A20-List of Sites CDMA-GSM Combined': {u'Integrated': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'Annex C8-Listado de Sitios Integrados (include in A20 ???)': {}, 
+u'A4-531 Sites Configuration & KPI': 
+	{u'BTS_Configuration': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Traffic': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	'Data_Traffic': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Call_Profile': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'KPI%': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A14-3G_2G And LTE_Currents_inputs-poligons !!!.xlsx': 
+	{u'Phase I': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:2G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:4G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'1,0', u'divided,named', u'A-G:3G', u'I-O:4G', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A1-Data_BASE_RADIO_ACCESS_NETWORK': 
+	{u'SITES DB': [u'4,1', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'A15-300 New Sites Deployment by Phases': 
+	{u'Phase I': [u'1,0', u'divided,named', u'A-G:2G', u'I-O:3G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'1,0', u'divided,named', u'A-G:2G', u'I-O:3G', '', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'1,0', u'divided,named', u'A-G:3G', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'VIVA  Analysis.xlsx': 
+	{u'Capacity table': [u'0,0', u'named', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'Annex C2 - Explanation About The Deployment and The Relative Phases': 
+	{u'Phase I': [u'15,0', u'divided,named', u'A-G:NEW2G', u'I-O:UP3G', u'Q-W:NEW3G', '', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase II': [u'15,0', u'divided,named', u'A-G:NEW2G', u'I-O:UP3G', u'Q-W:NEW3G', u'Y-AE:UP4G', '', '', '', '', '', '', '', '', '', ''], 
+	u'Phase III': [u'15,0', u'divided,named', u'A-G:UP3G', u'I-O:NEW3G', u'Q-W:UP4G', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'Mw Links': 
+	{ u'Mw Links': [u'1,0', u'named:L2-0', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}, 
+u'SITES SUMMARY Project Viva 2014-2016.xlsx': 
+	{u'SITES': [u'2,1', u'named:L2-1', '', '', '', '', '', '', '', '', '', '', '', '', '', '']}
+}
+
+
+

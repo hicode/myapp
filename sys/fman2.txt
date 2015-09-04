@@ -1,0 +1,286 @@
+# !!!compare fman2 with fman1 and fman, we can see what is a reasonable change for reasonable organization of info in different stage!!!
+
+import sqlite3
+
+conn = sqlite3.connect(r'd:\testfmnet.db')
+cur = conn.cursor()
+
+#cur.execute( 'drop table if exists filelist' )  # include extension in fn as a single search target (but seg particluarly )
+# use hash to create fnid? may not unique
+cur.execute( 'create table if not exists filelist(fn, path, fnhash, ext, size, mtime, ctime, atime)' )  # include extension in fn as a single search target (but seg particluarly )
+
+#cur.execute( 'drop table if exists seglist' )  # include extension in fn as a single search target (but seg particluarly )
+cur.execute( 'create table if not exists seglist(seg, fnhash)' ) # use fnid to save storage? assumption:　2*fnid < fn
+#cur.execute( 'create table if not exists seglist(seg, fn)' )  # include extension in fn as a single search target (but seg particluarly )
+
+conn.commit()
+
+
+# get list of root directory    # get file filters
+# get all file information
+# store file information in a db?
+# index seg of fn
+
+# monitor of change???
+
+# search GUI ? 
+# get input for search
+# name : more than 1 character
+# size/time
+# op? fuzzy? 
+
+import scandir
+import time
+import os
+
+def get_filepaths(directory):
+    file_paths = []  # List which will store all of the full filepaths.
+    for path, subdirs, files in scandir.walk(directory):
+        for filename in files:
+            fullpath = scandir.join(path,filename)
+            if not os.path.exists(fullpath):
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              continue
+            try:
+              att = scandir.lstat(fullpath)
+            except: # WindowsError:
+              #print winerror,strerror
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              #raise ImportError,"The wxPython module is required to run this program"
+            mtime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_mtime))
+            ctime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_ctime))
+            atime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_atime))
+            tmp = filename.rsplit( '.', 1 )
+            if len(tmp)>1:
+              ext = tmp[1]
+            else:
+              ext = ''
+            filepath = (filename, path, hash(filename), ext, att.st_size, mtime, atime, ctime)  # better to include extension in fn as a single search target (but seg particluarly )
+            file_paths.append(filepath)  # Add it to the list.
+        for dirname in subdirs:
+            fullpath = scandir.join(path,dirname)
+            if not os.path.exists(fullpath):
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              continue
+            try:
+              att = scandir.lstat(fullpath )
+            except: # WindowsError:
+              #print winerror,strerror
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( dirname.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.write( '%s :::: %s\n'%(winerror,strerror) ) #print string # replace with log later
+              fpLongNameFileLog.close()
+            mtime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_mtime))
+            ctime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_ctime))
+            atime = time.strftime('%y%m%d %H%M', time.localtime(scandir.lstat(fullpath).st_atime))
+            filepath = (dirname, path, hash(dirname), '', '', mtime, atime, ctime)
+            file_paths.append(filepath)  # Add it to the list.
+    return file_paths  # Self-explanatory.
+
+def rSubstr(string):
+    a=[] #set()
+    # better if 2-bytes coding can be identified
+    for leftTrunc in range(len(string)):
+      a.append(string[leftTrunc:])
+    return a
+
+
+def segStr(string, minl=0, maxl=-1):  # value of len para is str's max index, actual length is 1 + para value
+    a=[] #set()
+    tmp = string.rsplit( '.', 1 )
+    if len(tmp)>1:
+      a.append( tmp[1] )
+    a.extend( rSubstr(tmp[0]) )
+    return a
+
+def _seg(fL):
+  segFnList = []
+  for fn,path,fnhash,f4,f5,f6,f7,f8 in fL:
+    segList = segStr(fn)
+    for seg in segList:
+      segFnList.append( (seg,fnhash) )
+  return segFnList
+
+
+#def _seg(fL):
+#  segFnList = []
+#  for fn,path,fnhash in fL:
+#    segList = rSubstr(fn)
+#    for seg in segList:
+#      segFnList.append( (seg,fnhash) )
+#  return segFnList
+
+
+mypath='d:\\'
+fL = get_filepaths(mypath)
+
+cur.executemany( 'insert into filelist values (?,?,?,?,?,?,?,?)', fL )
+conn.commit()
+
+cur.executemany( 'insert into seglist values (?,?)', list( set( _seg(fL) ) ) )
+conn.commit()
+
+
+
+
+mypath='c:\\'
+fL = get_filepaths(mypath)
+
+cur.executemany( 'insert into filelist values (?,?,?,?,?,?,?,?)', fL )
+conn.commit()
+
+cur.executemany( 'insert into seglist values (?,?)', list( set( _seg(fL) ) ) )
+conn.commit()
+
+
+mypath='z:\\baidu'
+fL = get_filepaths1(mypath)
+fL = get_filepaths(mypath)
+
+cur.executemany( 'insert into filelist values (?,?,?,?,?,?,?,?)', fL )
+conn.commit()
+
+cur.executemany( 'insert into seglist values (?,?)', list( set( _seg(fL) ) ) )
+conn.commit()
+
+
+cur.execute( 'drop view if exists seg2fnpath' )
+cur.execute('create view seg2fnpath as select filelist.*, seg from seglist, filelist where seglist.fnhash == filelist.fnhash')
+
+
+def search(seg):
+  # split by ' '  # seg = seg.split(' ')   # better to split while handling the keyinput event
+  #cur.execute( "select * from seg2fnpath where seg like '?%'", (seg,) )
+  #cur.execute( "select * from seg2fnpath where seg like '?'", (seg,) )
+  #cur.execute( "select * from seg2fnpath where seg like ?", (seg,) )
+  cur.execute( "select * from seg2fnpath where seg like ?", ('%s%%'%seg,) )
+  #cur.execute( "select * from seg2fnpath where seg like '%s%%'"%(seg,) )
+  #def display(root, hl, r):
+  hl.delete_all()
+  i=0
+  for r in cur.fetchall():
+    hl.add("row%i"%i, text = "%s"%r[0])
+    hl.item_create('row%i'%i, 1, text = "%s"%r[1])
+    hl.item_create('row%i'%i, 2, text = "%s"%r[3])
+    hl.item_create('row%i'%i, 3, text = "%s"%r[4])
+    hl.item_create('row%i'%i, 4, text = "%s"%r[5])
+    i+=1
+
+
+# 陆续输入多个seg时，能否从查询结果cur中继续进一步查询，内存中吗？速度如何
+
+
+import Tix
+root = Tix.Tk()
+hl = Tix.HList(root, columns = 5, header = True)
+hl.pack(expand=1, fill=Tix.BOTH, padx=10, pady=10, side=Tix.LEFT)
+hl.header_create(0, text = "File")
+hl.header_create(1, text = "Path")
+hl.header_create(2, text = "ext")
+hl.header_create(3, text = "Size")
+hl.header_create(4, text = "Date")
+
+import Tkinter
+scroll = Tkinter.Scrollbar(hl, orient='vertical', width=20)
+scroll.pack(expand='yes', fill='x')
+
+search('split')
+s=u'颜色'
+search(s)
+
+cur.execute( "select * from seg2fnpath where seg like 'split%' " )
+print cur.fetchone()
+for r in cur.fetchall():
+  print r
+
+
+s='ab'
+ '%s'%s
+ '%s%%'%(s,)
+
+# 在Python3.x中，%格式符已经取消，统一使用format函数进行格式化
+fmt_str = "{0} {1} {name} {2} {age}".format("welcome", "boy!", "...", name = "owen", age = 18)
+print(fmt_str)
+
+'''
+目录  size/time
+
+列宽
+GUI 点击排序
+hash重复概率  split vs split_ samehash?
+click to open event
+文件变更
+速度再快些？ 5倍？ 内存db   首次检索后内存缓存？  
+join准确性？
+映射驱动器？scandir速度？
+
+everything：
+  功能扩展？re？?|
+  匹配标记？
+  目录文件图标
+
+重复文件 类型？ fn、size、ct
+
+'''
+
+
+
+
+
+
+
+def get_filepaths1(directory):
+    file_paths = []  # List which will store all of the full filepaths.
+    for path, subdirs, files in os.walk(directory):
+        for filename in files:
+            fullpath = os.path.join(path,filename)
+            if not os.path.exists(fullpath):
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              continue
+            try:
+              att = os.lstat(fullpath)
+            except: # WindowsError:
+              #print winerror,strerror
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              #raise ImportError,"The wxPython module is required to run this program"
+            mtime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_mtime))
+            ctime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_ctime))
+            atime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_atime))
+            tmp = filename.rsplit( '.', 1 )
+            if len(tmp)>1:
+              ext = tmp[1]
+            else:
+              ext = ''
+            filepath = (filename, path, hash(filename), ext, att.st_size, mtime, atime, ctime)  # better to include extension in fn as a single search target (but seg particluarly )
+            file_paths.append(filepath)  # Add it to the list.
+        for dirname in subdirs:
+            fullpath = os.path.join(path,dirname)
+            if not os.path.exists(fullpath):
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( filename.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.close()
+              continue
+            try:
+              att = os.lstat(fullpath )
+            except: # WindowsError:
+              #print winerror,strerror
+              fpLongNameFileLog = open( 'LongNameFile.log', 'a' )
+              fpLongNameFileLog.write( dirname.encode('utf8') ) #print string # replace with log later
+              fpLongNameFileLog.write( '%s :::: %s\n'%(winerror,strerror) ) #print string # replace with log later
+              fpLongNameFileLog.close()
+            mtime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_mtime))
+            ctime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_ctime))
+            atime = time.strftime('%y%m%d %H%M', time.localtime(os.lstat(fullpath).st_atime))
+            filepath = (dirname, path, hash(dirname), '', '', mtime, atime, ctime)
+            file_paths.append(filepath)  # Add it to the list.
+    return file_paths  # Self-explanatory.

@@ -1,0 +1,63 @@
+import urllib2
+content2 = urllib2.urlopen('http://3ms.huawei.com/').read()
+content1 = urllib2.urlopen('http://3ms.huawei.com/hi/blog/list_155251.html').read()
+content = urllib2.urlopen('http://www.taobao.com').read()
+
+from sgmllib import SGMLParser
+#另htmllib和sgmllib在python3已经被取消，不建议使用    可以使用html.parser.HTMLParser
+
+class ListName(SGMLParser):
+  def __init__(self):
+    SGMLParser.__init__(self)
+    self.is_h4 = ""
+    self.name = []
+  def start_h4(self, attrs):
+    self.is_h4 = 1
+  def end_h4(self):
+    self.is_h4 = ""
+  def handle_data(self, text):
+    if self.is_h4 == 1:
+      self.name.append(text)
+
+content = urllib2.urlopen('http://list.taobao.com/browse/cat-0.htm').read()
+listname = ListName()
+listname.feed(content)
+for item in listname.name:
+  print item.decode('gbk').encode('gbk') #utf8')
+
+
+from pyquery import PyQuery as pyq
+doc=pyq(url=r'http://list.taobao.com/browse/cat-0.htm')
+cts=doc('.market-cat')
+ 
+for i in cts:
+  print '====',pyq(i).find('h4').text() ,'===='
+  for j in pyq(i).find('.sub'):
+    print pyq(j).text() ,
+  print '\n'
+
+
+
+#import urllib   #import urllib.request as request  
+from bs4 import BeautifulSoup  
+def taobao(url):  
+    response = urllib2.urlopen('http://www.taobao.com').read()  #response = request.urlopen(url)      #html = response.read()  
+    #我是win7系统，默认是gdk要先解码，再用utf8编码就可以显示汉字了  
+    data = response.decode('gbk').encode('gbk') #utf-8')    #
+    soup = BeautifulSoup(data)  
+    for list in soup.find_all('h3'):  
+        print(list.string)  
+
+if __name__ == '__main__':  
+    print(""" 
++++++++++++++++++++++++ 
+  学校：超神学院 
+  专业：德玛班 
+  姓名：德玛之力 
+  version: python3.2 
++++++++++++++++++=++++ 
+     """)  
+    url = 'http://www.taobao.com/?spm=a310q.2219005.1581860521.1.b9kUd4'  
+    taobao(url)  
+
+

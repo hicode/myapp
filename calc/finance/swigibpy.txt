@@ -1,0 +1,24 @@
+from ib.opt import ibConnection
+con = ibConnection()
+con.connect()
+from ib.opt import ibConnection, message
+con = ibConnection()
+con.register(printData, message.historicalData)
+con.connect()
+
+from ib.ext.Contract import Contract
+newContract = Contract()
+newContract.m_symbol = 'TSLA'
+newContract.m_secType = 'STK'
+newContract.m_exchange = 'SMART'
+newContract.m_currency = 'USD'
+newContract.m_expiry = ''
+newContract.m_strike = 0.0
+newContract.m_right = ''
+
+reqHistoricalData(tickerId, contract,
+                          endDateTime, # last requested bar date/time
+                          durationStr,  # quote duration, units: S,D,W,M,Y
+                          barSizeSetting,  # bar length
+                          whatToShow,  # what to show
+                          useRTH, formatDate )

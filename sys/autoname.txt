@@ -1,0 +1,2 @@
+# randiom-id :: time&location of creation
+# abstract key-words tags

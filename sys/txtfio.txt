@@ -1,0 +1,36 @@
+# ☆☆
+# ★本栏包括...★
+
+# 	☆最新提示☆
+#	★本栏包括：【1.最新提醒】【2.融资融券】【3.最新报道】【4.最新异动】
+#	            【5.最新运作】【6.大宗交易】★
+
+#		【1.最新提醒】
+#			【最新简要】
+#			table
+#				★最新主要指标★
+#				★最新分红扩股和未来事项
+#					【分红】
+#					【增发】
+#				★特别提醒: 
+#					【业绩预告】
+#			★近五年每股收益对比：
+#			★最新公告
+
+
+
+# ☆☆ :: ★本栏包括：【】★ :: empty line :: table|line :: 
+
+# pid fullname engname mgly zgb ltg
+
+# struct define, validation mechanism, debug measure, robust level?
+
+fp = open(r'C:\Users\c52139\Documents\marketdata-yun\沪深 港澳资讯 2014年6月26日F10\SZF10\SZF10\000909.txt')
+sAllLn = fp.readlines() # read all line
+sAll = fp.read()
+
+structTag = {0:'☆☆', 1:'★★'}
+
+#statusMachine
+for c in sAll:
+  ln[0] == '☆'

@@ -1,0 +1,47 @@
+python c:\python27\scripts\django-admin.py startproject mysite 
+
+mysite/  manage.py
+     mysite/     
+       __init__.py
+       settings.py
+       urls.py
+
+       wsgi.py
+
+       views.py
+
+
+templates: {{}} {%include}  {%extends}  {%block}
+
+
+settings.py
+  urlconf
+  templates_dir
+  database
+  app
+
+python manage.py runserver 
+
+
+python manage.py startapp books 
+
+
+python manage.py validate 
+
+### python manage.py sqlall books  # Need to remove migrations folder first if you want to run this command in version 1.8
+## python manage.py syncdb   # this command will be deprecated in version 1.9
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+sqlite
+	usememdb time: 187.797
+	qryRealtim time: 32.341
+	save2DiskDb time: 545.666
+
+mysql
+	usememdb time: 19.192
+	qryRealtim time: 35.676
+	save2DiskDb time: 158.142
+

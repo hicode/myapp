@@ -1,0 +1,192 @@
+from pattern.web import Crawler
+from pattern.web import crawl
+from pattern.web import *
+
+crawler = Crawler(links=["http://3ms.huawei.com/hi/blog/list_155251.html"], domains=['huawei.com'], delay=5, sort=FIFO)
+
+#crawler.domains              # Domains allowed to visit (e.g., ['clips.ua.ac.be']).
+#crawler.delay                # Delay between visits to the same (sub)domain.
+#crawler.history              # Dictionary of (domain, time last visited)-items.
+#crawler.visited              # Dictionary of URLs visited.
+#crawler.sort                 # FIFO | LIFO (how new links are queued).
+#crawler.done                 # True when all links have been visited.
+
+crawler.push(link, priority=1.0, sort=LIFO)            
+crawler.pop(remove=True)
+crawler.next                 # Yields the next scheduled link = Crawler.pop(False)
+
+crawler.crawl(method=DEPTH)  # DEPTH | BREADTH | None.
+
+crawler.priority(link, method=DEPTH)
+crawler.follow(link)
+crawler.visit(link, source=None)
+crawler.fail(link)
+
+
+
+
+
+class Polly(Crawler): 
+    def visit(self, link, source=None):
+        print 'visited:', repr(link.url), 'from:', link.referrer
+    def fail(self, link):
+        print 'failed:', repr(link.url)
+
+p = Polly(links=["http://3ms.huawei.com/hi/blog/list_155251.html"], domains=['huawei.com'], delay=3)
+while not p.done:
+    p.crawl(method=DEPTH, cached=False, throttle=3)
+
+
+
+for link, source in crawl('http://3ms.huawei.com/hi/blog/list_155251.html', delay=3, throttle=3):
+    print link
+
+
+for link, source in crawl('http://3ms.huawei.com/3ms/', delay=3, throttle=3):
+    print link
+
+
+for link, source in crawl('http://www.baidu.com/', delay=3, throttle=3):
+    print link
+
+
+>>> print source
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- (C) COPYRIGHT International Business Machines Corporation 1999 -->
+<!-- All Rights Reserved -->
+<!-- Licensed Materials - Property of IBM -->
+<!-- -->
+<!-- US Government Users Restricted Rights - Use, duplication or  -->
+<!-- disclosure restricted by GSA ADP Schedule Contract with IBM Corp.-->
+<!-- -->
+<html>
+<body onload='document.location.href="http://3ms.huawei.com/3ms/"'>
+</body>
+</html>
+
+
+
+
+>>> print source
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+
+
+
+
+
+<script language="javascript" src='./js/jquery-1.4.2.min.js'></script>
+<title>Verify Spnego</title>
+</head>
+<body>
+<!-- bean:message key="login.spnego.tryspnego"/-->
+Trying to verify your identity by domain account ...<br><br>
+正在尝试用您的域身份自动进行登录。。。
+
+
+<script>
+
+var forwardLoginUrl = "?authPolicy=10&errCode=adAuthFail&lang=zh&redirect=http%3
+A%2F%2F3ms.huawei.com%2Fhi%2Fblog%2Flist_155251.html";
+forwardLoginUrl = forwardLoginUrl.replace(new RegExp('\&#40','gm'),'(');
+forwardLoginUrl = forwardLoginUrl.replace(new RegExp('\&#41','gm'),')');
+
+var loginurl = "login.do?actionFlag=loginAuthenticate&loginMethod=ad&lang=zh&red
+irect=http%3A%2F%2F3ms.huawei.com%2Fhi%2Fblog%2Flist_155251.html";
+loginurl = loginurl.replace(new RegExp('\&#40','gm'),'(');
+loginurl = loginurl.replace(new RegExp('\&#41','gm'),')');
+
+$.ajax({
+    url: '/login/authBySpnegoProtectedServlet',
+    type: 'GET',
+    dataType: 'html',
+    timeout: 4000,
+    error: function(){
+        window.location = forwardLoginUrl;
+    },
+    success: function(html){
+        if(html!=null && html.indexOf('spnegoSuccess')!=-1){
+            window.location = loginurl;
+        }
+        else{
+            window.location = forwardLoginUrl;
+        }
+    }
+});
+
+</script>
+</body>
+</html>
+
+
+
+
+
+>>> print source
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="javascript" src='./js/jquery-1.4.2.min.js'></script>
+<title>Verify Spnego</title>
+</head>
+<body>
+<!-- bean:message key="login.spnego.tryspnego"/-->
+Trying to verify your identity by domain account ...<br><br>
+正在尝试用您的域身份自动进行登录。。。
+
+
+<script>
+
+var forwardLoginUrl = "?authPolicy=10&errCode=adAuthFail&lang=zh&redirect=http%3
+A%2F%2F3ms.huawei.com%2FiPage%2Fhomepage%2Fhomepage.do%3FhomeText%3Dnull%26langu
+age%3Dcn%26method%3DshowHomepage";
+forwardLoginUrl = forwardLoginUrl.replace(new RegExp('\&#40','gm'),'(');
+forwardLoginUrl = forwardLoginUrl.replace(new RegExp('\&#41','gm'),')');
+
+var loginurl = "login.do?actionFlag=loginAuthenticate&loginMethod=ad&lang=zh&red
+irect=http%3A%2F%2F3ms.huawei.com%2FiPage%2Fhomepage%2Fhomepage.do%3FhomeText%3D
+null%26language%3Dcn%26method%3DshowHomepage";
+loginurl = loginurl.replace(new RegExp('\&#40','gm'),'(');
+loginurl = loginurl.replace(new RegExp('\&#41','gm'),')');
+
+$.ajax({
+    url: '/login/authBySpnegoProtectedServlet',
+    type: 'GET',
+    dataType: 'html',
+    timeout: 4000,
+    error: function(){
+        window.location = forwardLoginUrl;
+    },
+    success: function(html){
+        if(html!=null && html.indexOf('spnegoSuccess')!=-1){
+            window.location = loginurl;
+        }
+        else{
+            window.location = forwardLoginUrl;
+        }
+    }
+});
+
+</script>
+</body>
+</html>

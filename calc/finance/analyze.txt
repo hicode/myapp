@@ -1,0 +1,72 @@
+08年至今：
+ 低/高/超30幅度的波段数
+ 底部起涨幅
+ 历史涨幅
+
+12-今
+ 低/高/底部起涨幅
+ 年涨幅
+
+每年：
+ 低/高/底部起涨幅
+ 年涨幅
+
+14年
+ 低/高/底部起涨幅
+ 年涨幅
+
+15年
+ 低/高/底部起涨幅
+ 年涨幅
+
+create index idx_piddate on MAIN.[dayk] (pid, date)
+create index idx_datepid on MAIN.[dayk] (date, pid)
+
+create index idx_datepid on dayk(date, pid)
+create index idx_piddate on dayk(pid, date)
+
+create index idxk1_datepid on dayk1(date, pid)
+create index idxk1_piddate on dayk1(pid, date)
+
+create index idxk14_pid on dayk1(pid)
+
+
+select 1stO, MIN(L), MAX(H), LastO from dayk group by pid
+
+pid period
+ odate o
+ cdate c
+ minl ldate
+ maxh hdate
+
+create table if not exists k14(pid, odate, cdate, o, h, l, c)
+create table if not exists k13(pid, odate, cdate, o, h, l, c)
+
+cur.execute( 'create table if not exists dayK1(pid, date, o, h, l, c, amt, vol, divi)')
+conn.commit()
+
+select pid,min(date) from dayk where date>'2014-01-01' and pid like 'SH60000%' group by pid
+
+select pid, min(date) odate, max(date) cdate, min(l) minl, max(h) maxh  into k14 from dayk where date>'2014-01-01' group by pid;
+
+create view tmp14 as select pid, min(date) odate, max(date) cdate, min(l) minl, max(h) maxh from dayk where date>'2014-01-01' group by pid;
+create view tmp14o as select dayk.pid, odate,dayk.o from tmp14,dayk where tmp14.pid=dayk.pid and tmp14.odate=dayk.date;
+create view tmp14c as select dayk.pid, cdate,dayk.c from tmp14,dayk where tmp14.pid=dayk.pid and tmp14.cdate=dayk.date;
+create view tmp14l as select dayk.pid, min(dayk.date), dayk.l from tmp14, dayk where dayk.date>'2014-01-01' and tmp14.pid=dayk.pid and tmp14.minl=dayk.l group by dayk.pid,dayk.l;
+create view tmp14h as select dayk.pid, min(dayk.date), dayk.h from tmp14, dayk where dayk.date>'2014-01-01' and tmp14.pid=dayk.pid and tmp14.maxh=dayk.h group by dayk.pid,dayk.h;
+create view tmp13 as select pid,min(date) odate,max(date) cdate,min(l) minl,max(h) maxh from dayk where date>'2013-01-01' group by pid;
+create view tmp13o as select dayk.pid, odate,dayk.o from tmp13,dayk where tmp13.pid=dayk.pid and tmp13.odate=dayk.date;
+create view tmp13c as select dayk.pid, cdate,dayk.c from tmp13,dayk where tmp13.pid=dayk.pid and tmp13.cdate=dayk.date;
+create view tmp13l as select dayk.pid, min(dayk.date), dayk.l from tmp13, dayk where dayk.date>'2014-01-01' and tmp13.pid=dayk.pid and tmp13.minl=dayk.l group by dayk.pid,dayk.l;
+create view tmp13h as select dayk.pid, min(dayk.date), dayk.h from tmp13, dayk where dayk.date>'2014-01-01' and tmp13.pid=dayk.pid and tmp13.maxh=dayk.h group by dayk.pid,dayk.h;
+
+create index idx_tmp on tmp14(pid)
+
+select a.pid, a.odate, a.cdate, tmp14o.o, a.maxh, a.minl, tmp14c.c from tmp14 a, tmp14o, tmp14c where a.pid=tmp14o.pid and a.pid=tmp14c.pid;
+
+insert into k14(pid, odate, cdate, o, h, l) select a.pid, a.odate, a.cdate, tmp14o.o, a.maxh, a.minl from tmp14 a, tmp14o where a.pid=tmp14o.pid;
+
+update k14 set c=(select c from tmp14c where k14.pid=tmp14c.pid )
+update k14 set c=tmp14c.c from tmp14c where k14.pid=tmp14c.pid
+
+select a.*, tmp14o.o, tmp14o.odate from tmp14 a, tmp14o where a.pid=tmp14o.pid

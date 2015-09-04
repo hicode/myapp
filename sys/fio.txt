@@ -1,0 +1,175 @@
+import sys
+sys.version
+
+f = open("sz000001.day", "rb")
+try:
+    byte = f.read(1)
+    while byte != "":
+        # Do stuff with byte.
+        byte = f.read(1)
+finally:
+    f.close()
+
+
+with open("myfile", "rb") as f:
+    byte = f.read(1)
+    while byte != "":
+        # Do stuff with byte.
+        byte = f.read(1)
+
+
+##### python 3:
+with open("myfile", "rb") as f:
+    byte = f.read(1)
+    while byte != b"":
+        # Do stuff with byte.
+        byte = f.read(1)
+
+
+
+
+##### compatible in both python 2&3:
+with open("myfile", "rb") as f:
+    byte = f.read(1)
+    while byte:
+        # Do stuff with byte.
+        byte = f.read(1)
+
+
+
+#if the file is not too big that holding it in memory is a problem:
+bytes_read = open("filename", "rb").read()
+for b in bytes_read:
+    process_byte(b)  #do something with b
+
+
+#If you want to process a chunk at a time:
+file = open("filename", "rb")
+try:
+    bytes_read = file.read(CHUNKSIZE)
+    while bytes_read:
+        for b in bytes_read:
+            process_byte(b)
+        bytes_read = file.read(CHUNKSIZE)
+finally:
+    file.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#!/bin/python3
+
+import struct
+
+
+
+# This example demonstrates how to read a binary file, by reading the width and
+
+# height information from a bitmap file. First, the bytes are read, and then
+
+# they are converted to integers.
+
+
+# When reading a binary file, always add a 'b' to the file open mode
+
+with open('image.bmp', 'rb') as f:
+    
+
+  # BMP files store their width and height statring at byte 18 (12h), so seek
+    
+  # to that position
+    
+  f.seek(18)
+
+    
+
+  # The width and height are 4 bytes each, so read 8 bytes to get both of them
+
+  bytes = f.read(8)
+
+    
+
+  # Here, we decode the byte array from the last step. The width and height
+    
+  # are each unsigned, little endian, 4 byte integers, so they have the format
+    
+  # code '<II'. See http://docs.python.org/3/library/struct.html for more info
+
+  size = struct.unpack('<II', bytes)
+
+    
+
+  # Print the width and height of the image
+  
+  print('Image width:  ' + str(size[0]))
+  
+  print('Image height: ' + str(size[1]))
+
+
+
+
+
+struct.pack("i",34);
+ord('"')
+hex(ord('"'))
+struct.pack(">i",34)
+a1 = [123, 3, 255, 0, 100]
+bytearray(a1)
+' '.join(chr(i) for i in a1)
+
+
+from ctypes import *
+class Point(Structure):
+     _fields_ = [ ('x',c_double), ('y',c_double), ('z',c_double) ]
+
+class dayK(Structure):
+     _fields_ = [ ('date',c_int), ('o',c_int), ('h',c_int), ('l',c_int), ('c',c_int), ('amnt',c_float), ('vol',c_int), ('pre_c',c_int) ]
+
+f.close()
+f = open("c:\\sz000001.day", "rb")
+k1=dayK()
+f.readinto(k1)
+k1.date, k1.amnt, k1.vol, k1.o, k1.h, k1.l, k1.c, k1.pre_c
+f.readinto(k1)
+k1.date, k1.amnt, k1.vol, k1.o, k1.h, k1.l, k1.c, k1.pre_c
+
+p = Point(2,3.5,6)
+p.x
+f = open("foo","wb")
+f.write(p)       
+f.close()
+f = open("foo","rb")
+q = Point()
+f.readinto(q)
+
+
+
+# text file
+fp = open(r'C:\Users\c52139\Documents\marketdata-yun\沪深 港澳资讯 2014年6月26日F10\SZF10\SZF10\000909.txt')
+s1 = fp.readline()
+s2 = fp.readlines(?)
+sAllLn = fp.readlines() # read all line
+sAll = fp.read()
+

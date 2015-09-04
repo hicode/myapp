@@ -1,0 +1,188 @@
+from os import listdir
+from os.path import isfile, join
+
+mypath='c:\\'
+onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
+
+
+from os import walk
+
+f = []
+for (dirpath, dirnames, filenames) in walk(mypath):
+    f.extend(filenames)
+    break
+
+
+import glob
+print glob.glob(mypath)
+print glob.glob("/home/adam/*.txt")
+
+
+
+
+
+import os
+
+def get_filepaths1(directory):
+    """
+    This function will generate the file names in a directory 
+    tree by walking the tree either top-down or bottom-up. For each 
+    directory in the tree rooted at directory top (including top itself), 
+    it yields a 3-tuple (dirpath, dirnames, filenames).
+    """
+    file_paths = []  # List which will store all of the full filepaths.
+    # Walk the tree.
+    for root, directories, files in os.walk(directory):
+        for filename in files:
+            # Join the two strings in order to form the full filepath.
+            filepath = os.path.join(root, filename)
+            file_paths.append(filepath)  # Add it to the list.
+    return file_paths  # Self-explanatory.
+
+# Run the above function and store its results in a variable.   
+full_file_paths = get_filepaths(mypath)
+full_file_paths = get_filepaths("/Users/johnny/Desktop/TEST")
+
+
+import scandir
+def get_filepaths(directory):
+    """
+    This function will generate the file names in a directory 
+    tree by walking the tree either top-down or bottom-up. For each 
+    directory in the tree rooted at directory top (including top itself), 
+    it yields a 3-tuple (dirpath, dirnames, filenames).
+    """
+    file_paths = []  # List which will store all of the full filepaths.
+    # Walk the tree.
+    for root, directories, files in scandir.walk(directory):
+        for filename in files:
+            # Join the two strings in order to form the full filepath.
+            filepath = os.path.join(root, filename)
+            file_paths.append(filepath)  # Add it to the list.
+    return file_paths  # Self-explanatory.
+
+
+fp = open("C:/$MFT", "rb")
+
+
+
+
+from dirtools import Dir
+
+d = Dir('/path/to/dir', exclude_file='.gitignore')
+d.is_excluded('/path/to/dir/script.pyc')
+
+hashdir = d.hash()
+
+projects = d.find_projects('report.txt')
+
+
+d = Dir(r'C:\Users\c52139\Documents\GitHub\testgit')
+
+files = d.files()
+
+py_files = d.files('*.py')
+
+
+from dirtools import Dir, DirState
+
+d = Dir(path)
+d = Dir(r'C:\Users\c52139\Documents\GitHub\testgit')
+dir_state = DirState(d)
+
+
+import os
+os.path.getmtime(r'C:\Users\c52139\Documents\GitHub\testgit\talib.txt')
+
+
+
+ss='abcdefg'
+def substr(string, minlen=0, maxlen=-1):  # actual length is 1 + value of len parameter, value of len para is actually its max index
+    a=[] #set()
+    for length in range(minlen, len(string)):
+        for start in range(len(string)-length):
+            a.append(string[start:start+length+1])
+        if maxlen==length: break
+    return a
+
+
+l1=substr(ss)
+l2=substr(ss,1)
+l3=substr(ss,1,2)
+
+
+import string
+punc = string.punctuation
+thestring = "Hey, you - what are you doing here!?"
+s = list(thestring)
+''.join([o for o in s if not o in punc]).split()
+
+
+
+
+
+
+
+t1=(1,2,3)
+t2=(2,3,4,5)
+t3=('a','b','c')
+zip(t1,t2,t3)
+
+# compare dictionary
+
+dict1 = {'Name': 'Zara', 'Age': 7};
+dict2 = {'Name': 'Mahnaz', 'Age': 27};
+dict3 = {'Name': 'Abid', 'Age': 27};
+dict4 = {'Name': 'Zara', 'Age': 7};
+print "Return Value : %d" %  cmp (dict1, dict2)
+print "Return Value : %d" %  cmp (dict2, dict3)
+print "Return Value : %d" %  cmp (dict1, dict4)
+
+
+d1={1:11,2:22,4:44}
+d2={3:33,2:222,4:44}
+def dict_diff(d1, d2, NO_KEY='<KEYNOTFOUND>'):
+    both = set(d1.keys()) & set(d2.keys())
+    diff = {k:(d1[k], d2[k]) for k in both if d1[k] != d2[k]}
+    diff.update({k:(d1[k], NO_KEY) for k in set(d1.keys()) - both})
+    diff.update({k:(NO_KEY, d2[k]) for k in set(d2.keys()) - both})
+    return diff
+
+both = set(d1.keys()) & set(d2.keys())
+diff = {k:(d1[k], d2[k]) for k in both if d1[k] != d2[k]}
+diff.update({k:(d1[k], NO_KEY) for k in set(d1.keys()) - both})
+diff.update({k:(NO_KEY, d2[k]) for k in set(d2.keys()) - both})
+
+
+def dict_compare(d1, d2):
+    d1_keys = set(d1.keys())
+    d2_keys = set(d2.keys())
+    intersect_keys = d1_keys.intersection(d2_keys)
+    added = d1_keys - d2_keys
+    removed = d2_keys - d1_keys
+    modified = {o : (d1[o], d2[o]) for o in intersect_keys if d1[o] != d2[o]}
+    same = set(o for o in intersect_keys if d1[o] == d2[o])
+    return added, removed, modified, same
+
+x = dict(a=1, b=2)
+y = dict(a=2, b=2)
+added, removed, modified, same = dict_compare(x, y)
+
+
+
+import pprint
+pprint.pprint(x)
+
+
+s = 'she sells sea shells by the sea shore'
+ss = 'M2000开站功能使用篇(二)DHCP过程 - 企业无线验证与交付部 - 3ms知识管理社区.mht'
+
+import hashlib
+int(hashlib.sha1(s).hexdigest(), 16) % (10 ** 8)
+
+abs(hash(s)) % (10 ** 8)
+
+i = 5
+import sys
+sys.getsizeof(i)
+

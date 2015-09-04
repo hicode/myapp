@@ -1,0 +1,158 @@
+import email
+
+fp=open(r'C:\Users\c52139\Desktop\FW About Haiti NATCOM 2G SW upgrade RE Please follow the template and the contract to update the time schedule.msg')
+msg=email.message_from_file(fp)
+
+subject = msg.get("subject") # 取信件头里的subject,　也就是主题
+# 下面的三行代码只是为了解码象=?gbk?Q?=CF=E0=C6=AC?=这样的subject
+h = email.Header.Header(subject)
+dh = email.Header.decode_header(h)
+subject = dh[0][0]
+print "subject:", subject
+print "from: ", email.utils.parseaddr(msg.get("from"))[1] # 取from
+print "to: ", email.utils.parseaddr(msg.get("to"))[1] # 取to
+
+fp.close()
+
+
+
+
+
+
+
+import win32com.client, sqlite3
+from datetime import datetime
+
+def collectMail():
+    conn = sqlite3.connect('outlook.db')
+    i = 0
+    try:    
+        outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+        inbox = outlook.GetDefaultFolder(6) 
+        messages = inbox.Items
+        print 'total messages: ', len(messages)
+        message = messages.GetFirst ()
+        while message:
+            i += 1          
+            try:
+                subject = message.Subject
+                #print i, subject
+                received_time = str(message.ReceivedTime)
+                #print received_time
+                received_time = datetime.strptime(received_time, '%m/%d/%y %H:%M:%S') 
+                #print message.EntryID
+                html_body = message.HTMLBody
+                size = long(message.Size)
+                sender =  message.SenderName
+                receiver = message.To
+                cc = message.Cc
+                body = message.Body         
+                attachments = message.Attachments
+                attachment = attachments.Item(1)
+                #attachment.SaveAsFile('C:\\temp\\' + attachment.FileName)
+                conn.execute('insert into outlook(SUBJECT, SENDER, RECEIVER, CC, SIZE, RECEIVED_TIME, BODY, HTML_BODY) values(?, ?, ?, ?, ?, ?, ?, ?)', (subject, sender, receiver, cc, size, received_time, body, html_body))
+                conn.commit()
+            except:
+                print i, 'skip'
+                continue                
+            message = messages.GetNext()            
+    finally:
+        print 'connection closed'
+        conn.close()
+
+conn = sqlite3.connect('outlook.db')
+conn.execute('drop table if exists outlook')
+conn.execute('create table outlook(ID INTEGER PRIMARY KEY   AUTOINCREMENT,SUBJECT VARCHAR(200) NOT NULL,SENDER VARCHAR(200) NOT NULL,RECEIVER VARCHAR(200) NOT NULL,CC  VARCHAR(200) NOT NULL,SIZE LONG NOT NULL,RECEIVED_TIME,BODY TEXT,HTML_BODY TEXT);')
+
+collectMail()
+
+
+'''
+sql to create table
+
+create table outlook(
+ID INTEGER PRIMARY KEY   AUTOINCREMENT,
+SUBJECT VARCHAR(200) NOT NULL,
+SENDER VARCHAR(200) NOT NULL,
+RECEIVER VARCHAR(200) NOT NULL,
+CC  VARCHAR(200) NOT NULL,
+SIZE LONG NOT NULL,
+RECEIVED_TIME DATETIME,
+BODY TEXT,
+HTML_BODY TEXT);
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+import win32com.client
+
+session = win32com.client.gencache.EnsureDispatch ("MAPI.Session")
+
+#
+# Leave blank to be prompted for a session, or use
+# your own profile name if not "Outlook". It is also
+# possible to pull the default profile from the registry.
+#
+session.Logon ("Outlook")
+messages = session.Inbox.Messages
+
+#
+# Although the inbox_messages collection can be accessed
+# via getitem-style calls (inbox_messages[1] etc.) this
+# is the recommended approach from Microsoft since the
+# Inbox can mutate while you're iterating.
+#
+message = messages.GetFirst ()
+while message:
+  print message.Subject
+  message = messages.GetNext ()
+
+
+
+class Folder (object):
+  def __init__ (self, folder):
+    self._folder = folder
+  def __getattr__ (self, attribute):
+    return getattr (self._folder, attribute)
+  def __iter__ (self):
+    #
+    # NB You *must* collect a reference to the
+    # Messages collection here; otherwise GetFirst/Next
+    # resets every time.
+    #
+    messages = self._folder.Messages
+    message = messages.GetFirst ()
+    while message:
+      yield message
+      message = messages.GetNext ()
+
+if __name__ == '__main__':
+  import win32com.client
+  session = win32com.client.gencache.EnsureDispatch ("MAPI.Session")
+  constants = win32com.client.constants
+  session.Logon ()
+  
+  sent_items = Folder (session.GetDefaultFolder (constants.CdoDefaultFolderSentItems))
+  for message in sent_items:
+    print message.Subject
+
+
+
+
+
+
+
+
+
+
+

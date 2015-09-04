@@ -1,0 +1,36 @@
+http://3ms.huawei.com/hi/group/305/file_1907933.html?isComment=true
+
+英语听力应用推荐  
+1、S-SPAN RADIO
+2、BBC News
+以上应用在Apple Store里可以搜索、下载。
+
+monday
+tuesday
+wensday
+thursday
+friday
+saturday
+sunday
+
+318630A
+
+
+ENSP版本：V1R1C00  1.0.210
+GNS3版本：0.7.3
+摘要：C公司作为业界标杆，其Router设备使用广泛。Huawei坚持被集成的战略，无论华为工程师或者合作伙伴在交付项目中，不可避免要遇到与C公司对接种种问题。ENSP和GNS3都是优秀的在模拟环境下镜像真实场景的工具，本案例基于两个优秀软件探讨如何利用win7 loopback实现平滑桥接。
+
+STEP 1： win7上添加一个loopback适配器
+  开始运行： hdwwiz 回车进入硬件添加向导
+ 
+
+选择手动安装，设备类型选择“网络适配器”，如下图所示：（图片详情，请下载附件）
+
+在选择厂家的时候稍等片刻，大概过1分钟左右才弹出选项，按图所示选择Microsoft的loopback Adapter，安装完毕，网络和共享中心就会多出一个“本地连接X”适配器，可以更名为loopback或其他个人喜好，更名是方便后续选择时容易识别。
+
+STEP 2  GNS3 添加本地loopback适配器，并与Cisco Router接口绑定。配置方式参考Cloud node截图，添加完后世界Cisco Router的 g 0/0如图，就与本地适配器（其实可以理解为一张网卡）连接上了，这里的适配器个人理解为一个内部交换机，有兴趣的同事可以去研究下Huawei E6000刀片服务器交换网板。
+
+STEP3 AR接口与本地loopback适配器绑定，过程比GNS3简单。只需要新建AR并配置绑定即可，无需Cloud。
+
+
+STEP4  启动设备，开始对接试验。

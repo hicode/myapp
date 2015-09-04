@@ -1,0 +1,65 @@
+fix col ohcl/amt/time/vol/rsi/cci/.../f1/f2...
+dynamic alias
+
+trend
+ up_xxx(re_xx)     p inc in xxx unit (reverse direction in xx unit)
+ dn_(re_xx)
+ boost_xxx         v inc in xxx unit
+ shrnk_xxx
+
+status:
+ strong
+ weak
+ lazy
+ head
+ tail 
+    _2idx
+    _2blk
+    _2
+ posi (_2idx?)
+ nega (_2idx?)
+
+event:
+ new_h_xxx
+ new_l_xxx
+ new_hv_xxx
+ new_lv_xxx
+
+   _abn (sudden weak)
+
+
+k pattern
+ pon
+ nop
+ star
+ crack
+
+
+role
+ day leader
+ period leader
+ block leader
+ leader block
+
+
+28 phenomenon
+
+!!distinct T+1 T+0
+!!zhuli market vs free market: one zhuli won't waste any dime
+
+waittogo:
+  concept trigger keypoint 
+  langchao concept IOE government 发文  server-product
+  car     公务用车
+
+
+assumption validate
+
+
+
+autochooseprodfromtaobao
+ previous bought
+ sale most
+ check bad comment
+ price trend
+ credit of seller

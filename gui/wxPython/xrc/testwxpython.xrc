@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="panel1">
+    <object class="wx.lib.foldpanelbar.FoldPanelBar"/>
+    <object class="wxListBox" name="lstbox1">
+      <content>
+        <item>1234123</item>
+        <item>sdfs</item>
+        <item>456</item>
+      </content>
+    </object>
+    <object class="wxListBox">
+      <content>
+        <item>123</item>
+        <item>sdfgasdgdfgdfgdfg</item>
+      </content>
+    </object>
+    <object class="wxGrid" name="g1">
+      <pos>88,88</pos>
+      <size>88,88</size>
+    </object>
+    <object class="wxButton" name="g1">
+      <pos>88,88</pos>
+      <size>88,88</size>
+    </object>
+    <pos>55</pos>
+    <size>55</size>
+  </object>
+</resource>

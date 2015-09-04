@@ -1,0 +1,19 @@
+import struct
+
+fBlk=r'D:\ZXG-.blk'
+fSel=fBlk.split('.')[0]+'.sel'
+fp=open(fBlk)
+lines=fp.readlines()
+fpSel=open(fSel,'ab')
+buf=struct.pack('<H',len(lines)-1)
+fpSel.write(buf)
+for ln in lines[1:]:
+ if ln[1]=='6':
+  #buf=struct.pack('<H6c',7*255+11,ln[1:].strip())
+  buf=struct.pack('<H6s',1*16*256+1*256+7,ln[1:].strip().encode())
+  fpSel.write(buf)
+ else:
+  buf=struct.pack('<H6s',2*16*256+1*256+7,ln[1:].strip().encode())
+  fpSel.write(buf)
+
+fpSel.close()

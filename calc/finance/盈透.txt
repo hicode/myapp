@@ -1,0 +1,102 @@
+from ib.opt import Connection, message
+from ib.ext.Contract import Contract
+from ib.ext.Order import Order
+def make_contract(symbol, sec_type, exch, prim_exch, curr):
+    Contract.m_symbol = symbol
+    Contract.m_secType = sec_type
+    Contract.m_exchange = exch
+    Contract.m_primaryExch = prim_exch
+    Contract.m_currency = curr
+    return Contract
+
+def make_order(action,quantity, price = None):
+    if price is not None:
+        order = Order()
+        order.m_orderType = 'LMT'
+        order.m_totalQuantity = quantity
+        order.m_action = action
+        order.m_lmtPrice = price
+    else:
+        order = Order()
+        order.m_orderType = 'MKT'
+        order.m_totalQuantity = quantity
+        order.m_action = action
+    return order
+
+cid = 303
+while __name__ == "__main__":
+    conn = Connection.create(port=7496, clientId=999)
+    conn.connect()
+    oid = cid
+    cont = make_contract('TSLA', 'STK', 'SMART', 'SMART', 'USD')
+    offer = make_order('BUY', 1, 200)
+    conn.placeOrder(oid, cont, offer)
+    conn.disconnect()
+    x = raw_input('enter to resend')
+    cid += 1
+
+
+call put 
+底层证券
+权证 乘数 杠杆率
+
+存款通知
+
+ibpy
+篮子交易
+在册交易
+深度数据
+滑点
+扫描仪
+
+
+Head office: 
+  Dronning Eufemias gate 30, 0191 Oslo 
+Postal address: 
+  DNB, Postboks 1600 Sentrum, 0021 Oslo
+
+Owner:
+  Kehu Cao
+The IBAN for this account is:
+  NO68 1203 4937 808
+The bank's identifier code (BIC) is:
+  DNBANOKKXXX
+
+
+
+Name
+ Citibank, N.A. (New York Branch) 
+Address
+ Wall St, New York, NY, United States 
+Bank SWIFT BIC Code
+ CITI US 33 
+ABA Number
+ 021000089 
+
+Bank Account Name
+ Interactive Brokers LLC. 
+Bank Account Number
+ 40806826U8900733 
+For further benefit to U8900733 / Kehu Cao 
+Amount USD 25,800.00
+
+
+
+Citibank, N.A. (New York Branch) 
+Wall St, New York, NY, United States 
+Bank SWIFT BIC Code: CITI US 33 
+ABA Number: 021000089 
+Bank Account Name: Interactive Brokers LLC. 
+Bank Account Number: 40806826U8900733 
+For further benefit to: U8900733 / Kehu Cao 
+In order to help expedite the processing of deposits, the Bank Account Number field reflects a combination of both our bank account number and your account number. However, if the platform of your bank requires that you send the funds indicating the account numbers separately, send the funds to our bank account number 40806826 and for further benefit to your account number.
+
+
+NINJATRADER
+　　AmiBroker
+　　Multicharts
+　　大概的说说：
+　　Multicharts已经来到中国，功能被阉割了。不能与IB盈透连接，台版的繁体Multicharts没有阉割，可与IB盈透连接。
+　　AmiBroker 已经被高手破解了可以无限期使用下去。成为免费版。
+　　NINJATRADER 比起前来，有一个最大的好处就是程序化交易时，风险计算方面超强
+

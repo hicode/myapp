@@ -1,0 +1,61 @@
+
+打开新cmd窗口，启动管理节点
+ndb_mgmd.exe --config-file=e:/cluster/config.ini --configdir=e:/cluster
+
+
+注：我们也可以将其做成服务，在命令行中输入：       ndb_mgmd --install=ndb_mgmd -f e:\cluster\config.ini --configdir=e:\cluster
+
+
+
+打开新cmd窗口, 启动数据节点
+ndbd.exe --initial         /*首次执行时加入--initial参数*/
+
+注：我们也可以将其做成服务，在命令行中输入：       ndbd --install=ndbd
+
+
+
+
+如何查看是否启动成功呢？我们可以在192.168.1.10主机中再新开一个命令行窗口，切到目录C:\mysql\bin，输入：ndb_mgm       回车，然后再输入：ALL STATUS       回车，就可以看到数据节点的连接信息了。
+
+
+
+启动SQL节点
+
+       在192.168.1.10主机中继续打开一个新的命令行窗口，切到目录C:\mysqlcluster\sqlnode\mysql\bin，输入：
+
+       mysqld --console
+
+       回车，SQL节点启动。
+
+       注：我们也可以将其做成服务，输入：
+
+       mysqld -install mysql
+
+       以相同的方法在192.168.1.20中启动SQL节点。
+
+       想要查看SQL节点的启动情况可以在192.168.1.10主机中同样打开新命令行，输入：
+
+       ndb_mgm
+
+       回车，再输入：
+
+       SHOW
+
+       回车，就可以看到SQL节点的连接情况了
+
+
+
+执行完成后启动mysql:
+net start mysql
+
+
+
+
+
+在数据节点中执行:
+打开新cmd窗口：
+ndbd.exe
+ 
+打开新cmd窗口
+mysqld.exe --default-file="C:/ProgramFiles/MySQL/MySQL Cluster 7.4/my.ini"
+执行完成后启动mysql:

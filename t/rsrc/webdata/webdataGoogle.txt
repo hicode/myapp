@@ -1,0 +1,434 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>000001（上证指数）的历史数据 - Google 财经</title>
+<META NAME="Description" CONTENT="上证指数 的历史价格">
+<meta name=robots content=noindex>
+<style>#gbar{padding-left:8px;height:22px}.gbh,.gbd{border-top:1px solid #c9d7f1;font-size:1px}.gbh{height:0;position:absolute;top:24px;width:100%}#guser{padding-bottom:7px !important;text-align:right}#gbar,#guser{font-size:13px;padding-right:8px;padding-top:4px !important}@media all{.gb1{height:22px;margin-right:.5em;vertical-align:top}#gbar{float:left}}a.gb1,a.gb4{color:#00c !important}.gb4i{color:#dd8e27 !important}.gb4f{color:#900 !important}</style>
+<script language="Javascript" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/finance/s/8Z0zUzPGfxk/styles/finance_ccn.css">
+<style>#gbar{padding-left:8px;height:22px}.gbh,.gbd{border-top:1px solid #c9d7f1;font-size:1px}.gbh{height:0;position:absolute;top:24px;width:100%}#guser{padding-bottom:7px !important;text-align:right}#gbar,#guser{font-size:13px;padding-right:8px;padding-top:4px !important}@media all{.gb1{height:22px;margin-right:.5em;vertical-align:top}#gbar{float:left}}a.gb1,a.gb4{color:#00c !important}.gb4i{color:#dd8e27 !important}.gb4f{color:#900 !important}div#gbar{padding-left:0}</style>
+<style>
+.historical_chart_wrap {
+border: 1px solid #C5DCF7;
+width: 270px;
+height: 160px;
+}
+.historical_chart {
+background: no-repeat url(http://www.google.com/chart?cht=lfe&chc=&chs=270x160&chm=B,EDF7FF,0,0,0&chd=s:FFFFGGHHHHGDCBBBBBAAAAAACEECDDDDCEEFFFGGGHGGGGGGGGGGHJLKNNNPQQQSSSVSOPQQQSOOLKKKKJOPOOOLMMMLLLMPPQRRRTTRUUUUUUWWWWWXTVXXXaaaaZZZbaYYXXXWVYYYYYbcddeeecdfeeeefgfdddddceeeeehhjjiiijklkiiikjlmnnnooppppprqsuvvvwvvwwwwvxzyzzz1z345558813777997511111wxtttnokoqqqroqqmmmfghmmmmnpqprrrttsuqqqqommmmmjjjjjjjjjjjoooopqrrrrtvutwwwwstqrrruwwxyyyyyyyzzz2233333402yvvvz0213334301&chco=3f8ce5) -2px 0;
+border: 0px solid;
+width: 270px;
+height: 160px;
+font-size: 75%;
+}
+.historical_chart_bottom {
+width: 272px;
+height: 16px;
+background-color: #C5DCF7;
+font-size: 75%;
+overflow: hidden;
+text-overflow: clip;
+border: 0px solid;
+}
+td.top {
+border-top: 1px solid #DEDEDE;
+}
+td.left {
+border-left: 1px solid #F7F7F6;
+}
+.DP_popup_div {
+font-size: 1.5em;
+}
+</style>
+</head>
+<body>
+<div class=g-doc id=outer-wrapper>
+<div id=body-wrapper>
+<div id=gbar><nobr><a href="http://www.google.cn/search?q=SHA:000001&sa=N&hl=zh-CN&tab=ew" class=gb1>网页</a> <a href="http://images.google.cn/images?q=SHA:000001&sa=N&hl=zh-CN&tab=ei" class=gb1>图片</a> <a href="http://video.google.cn/videosearch?q=SHA:000001&sa=N&hl=zh-CN&tab=ev" class=gb1>视频</a> <a href="http://ditu.google.cn/maps?q=SHA:000001&sa=N&hl=zh-CN&tab=el" class=gb1>地图</a> <a href="http://news.google.cn/news?q=SHA:000001&sa=N&hl=zh-CN&tab=en" class=gb1>资讯</a> <a href="http://www.google.cn/music/search?q=SHA:000001&sa=N&hl=zh-CN&tab=eU" class=gb1>音乐</a> <a href="http://wenda.tianya.cn/wenda/search?q=SHA:000001&sa=N&hl=zh-CN&tab=eH" class=gb1 style="text-decoration:none;color:green !important"><u style="height:22px;vertical-align:top;cursor:hand">问答</u>&raquo;</a> <a href="http://laiba.tianya.cn/laiba/Glue?q=SHA:000001&sa=N&hl=zh-CN&tab=eG" class=gb1 style="text-decoration:none;color:green !important"><u style="height:22px;vertical-align:top;cursor:hand">来吧</u>&raquo;</a> <a href="http://www.google.cn/intl/zh-CN/options/" class=gb1 style="text-decoration:none"><u>更多</u> &raquo;</a></nobr></div><div class=gbh style=left:0></div><div class=gbh style=right:0></div>
+<div id=guser>&nbsp;</div>
+<script>window.locale={hl:'zh-CN',gl:'cn',locale:'zh-Hans-CN'};</script>
+<div class="g-section g-tpl-75-25 g-split search-header">
+<div class="g-unit g-first">
+<div class=sfe-logo>
+<a  href="/finance">
+<img src="/finance/s/48RbcGaR5VU/images/logo_ccn.gif" alt="Google 财经">
+</a>
+</div>
+<div class=sfe-search>
+<form method=GET action="/finance" name=f>
+<input  name=q id=searchbox autocomplete=off size=40 maxlength=2048
+             type=text tabindex=1 title="股票搜索输入"
+             value="">
+<input type=submit value="查询" target_blank>
+<a id="p-h-pf-ccn" href="http://www.google.com/finance/portfolio?gl=cn">
+用国际中文版管理投资组合 <font color=red>新！</font>
+</a>
+<br>
+<span class="searchExample">例如“601988”、“zgyh”或“中国银行”</span>
+</form>
+</div>
+</div>
+<div class="g-unit promo">
+</div>
+</div>
+<div class="g-section g-tpl-nav-main">
+<div class="g-unit g-first" id="left-nav">
+<ul id=navmenu>
+<li class="nav-selected nav-expanded">指数
+<li class=navsub>
+<a  id="nav-ids" 
+  href="/finance?q=SHA:000001">摘要
+</a>
+<li class=navsub>
+<a  id="nav-idn" 
+  href="/finance/company_news?q=SHA:000001">资讯
+</a>
+<li class=navsub>
+<div>历史价格
+</div>
+<li class=nav-item>
+<a id="nav-m" 
+  href="/finance">
+<div>市场</div></a>
+<li class=nav-item>
+<a id="nav-n" 
+  href="/finance/market_news">
+<div>资讯</div></a>
+<li class=nav-item>
+<a id="nav-s" 
+  href="/finance/stockscreener">
+<div>股票筛选器</div></a>
+</ul>
+<div id=rq-box>
+<h4>最近查询</h4>
+<div id=rq-toggle></div>
+<div id=rq-table></div>
+</div>
+<form id=new_pform_nav
+        action=/finance/portfolio?action=create&hash= method=post>
+<input id=new_pform_name type=hidden name=pname />
+<input id=new_pform_cids type=hidden name=pcids />
+<input  id=is_logged_in type=hidden name=is_logged_in
+           value=0 />
+</form>
+</div>
+<div class="g-unit sfe-break-left" id="rt-content">
+<div class="g-section sfe-break-bottom-16">
+<div class="g-section hdg top">
+<h3>上证指数 的历史数据 </h3>&nbsp;&nbsp;
+</div>
+</div>
+<div class="g-section g-tpl-right-1">
+<div class="g-unit g-first">
+<div class=g-c>
+<div class=sfe-break-bottom-16>
+<div class="g-section hdg">
+<h3>历史图表</h3>
+</div>
+<div class=sfe-break-bottom-8></div>
+<div class=historical_chart_wrap>
+<table class=historical_chart cellpadding=0>
+<tr>
+<td width=33%>&nbsp;</td>
+<td width=34% class=left>&nbsp;</td>
+<td class="top left" align=right valign=top>3471&nbsp;</td>
+</tr>
+<tr>
+<td class=top>&nbsp;</td>
+<td class="top left">&nbsp;</td>
+<td class="top left" align=right valign=top>2921&nbsp;</td>
+</tr>
+<tr>
+<td class=top>&nbsp;</td>
+<td class="top left">&nbsp;</td>
+<td class="top left" align=right valign=top>2370&nbsp;</td>
+</tr>
+</table>
+</div>
+<div class=historical_chart_bottom>
+<table width=100% height=100%>
+<tr>
+<td align=left width=33%>&nbsp;2008-12-12</td>
+<td align=center width=34%></td>
+<td align=right>2009-12-10&nbsp;</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class=g-unit>
+<div class="g-c sfe-break-right">
+<div class="gf-table-control gf-control g-tpl-33-67 g-split" align=right>
+<div class="g-unit g-first">
+<span class="nwp sfe-break-left-5">
+<span>显示: </span>
+<span class=bld>每日</span>
+|
+<a href="/finance/historical?q=SHA:000001&histperiod=weekly">每周</a>
+</span>
+</div>
+<div class=g-unit>
+<form method=GET action="/finance/historical" style="display:inline" class=nwp>
+<input type=hidden name=cid value="7521596">
+<input autocomplete=off id=fromdate type=text size=10 name=startdate value="2008-12-12"> -
+<input autocomplete=off id=todate type=text size=10 name=enddate value="2009-12-11">
+<input type=submit value=更新 style="height:1.9em; margin:0 0 0 0.3em;">
+</form>
+</div>
+</div>
+<div id=prices class="gf-table-wrapper sfe-break-bottom-16">
+<table id=historical_price class=gf-table>
+<tr class=bb>
+<th class="bb lm">日期
+<th class="rgt bb">开盘价 <th class="rgt bb">最高价 <th class="rgt bb">最低价
+<th  class="rgt bb">收盘价
+<th class="rgt bb rm">成交量
+<tr>
+<td  class="lm">2009-12-10
+<td  class="rgt">3,258.35
+<td  class="rgt">3,276.13
+<td  class="rgt">3,225.56
+<td  class="rgt">3,254.26
+<td  class="rgt rm">9,430,651,600
+<tr>
+<td  class="lm">2009-12-09
+<td  class="rgt">3,258.00
+<td  class="rgt">3,284.64
+<td  class="rgt">3,228.20
+<td  class="rgt">3,239.57
+<td  class="rgt rm">11,509,503,000
+<tr>
+<td  class="lm">2009-12-08
+<td  class="rgt">3,330.33
+<td  class="rgt">3,330.38
+<td  class="rgt">3,260.67
+<td  class="rgt">3,296.66
+<td  class="rgt rm">13,706,557,300
+<tr>
+<td  class="lm">2009-12-07
+<td  class="rgt">3,313.06
+<td  class="rgt">3,334.01
+<td  class="rgt">3,302.13
+<td  class="rgt">3,331.90
+<td  class="rgt rm">13,987,600,100
+<tr>
+<td  class="lm">2009-12-04
+<td  class="rgt">3,256.61
+<td  class="rgt">3,319.13
+<td  class="rgt">3,214.84
+<td  class="rgt">3,317.04
+<td  class="rgt rm">21,594,507,200
+<tr>
+<td  class="lm">2009-12-03
+<td  class="rgt">3,268.00
+<td  class="rgt">3,270.37
+<td  class="rgt">3,227.77
+<td  class="rgt">3,264.63
+<td  class="rgt rm">15,921,998,800
+<tr>
+<td  class="lm">2009-12-02
+<td  class="rgt">3,252.98
+<td  class="rgt">3,278.27
+<td  class="rgt">3,245.96
+<td  class="rgt">3,269.75
+<td  class="rgt rm">17,505,136,300
+<tr>
+<td  class="lm">2009-12-01
+<td  class="rgt">3,191.06
+<td  class="rgt">3,240.66
+<td  class="rgt">3,173.42
+<td  class="rgt">3,235.36
+<td  class="rgt rm">16,527,976,700
+<tr>
+<td  class="lm">2009-11-30
+<td  class="rgt">3,114.29
+<td  class="rgt">3,195.88
+<td  class="rgt">3,114.29
+<td  class="rgt">3,195.30
+<td  class="rgt rm">13,886,026,300
+<tr>
+<td  class="lm">2009-11-27
+<td  class="rgt">3,137.30
+<td  class="rgt">3,169.76
+<td  class="rgt">3,080.88
+<td  class="rgt">3,096.26
+<td  class="rgt rm">14,880,272,700
+<tr>
+<td  class="lm">2009-11-26
+<td  class="rgt">3,296.01
+<td  class="rgt">3,305.33
+<td  class="rgt">3,160.35
+<td  class="rgt">3,170.98
+<td  class="rgt rm">21,797,883,800
+<tr>
+<td  class="lm">2009-11-25
+<td  class="rgt">3,214.82
+<td  class="rgt">3,291.17
+<td  class="rgt">3,188.02
+<td  class="rgt">3,290.16
+<td  class="rgt rm">18,902,673,700
+<tr>
+<td  class="lm">2009-11-24
+<td  class="rgt">3,352.22
+<td  class="rgt">3,361.39
+<td  class="rgt">3,214.03
+<td  class="rgt">3,223.53
+<td  class="rgt rm">25,021,155,400
+<tr>
+<td  class="lm">2009-11-23
+<td  class="rgt">3,312.97
+<td  class="rgt">3,339.30
+<td  class="rgt">3,305.50
+<td  class="rgt">3,338.66
+<td  class="rgt rm">16,953,159,000
+<tr>
+<td  class="lm">2009-11-20
+<td  class="rgt">3,309.38
+<td  class="rgt">3,332.53
+<td  class="rgt">3,280.18
+<td  class="rgt">3,308.35
+<td  class="rgt rm">17,607,402,500
+<tr>
+<td  class="lm">2009-11-19
+<td  class="rgt">3,311.19
+<td  class="rgt">3,329.03
+<td  class="rgt">3,285.80
+<td  class="rgt">3,320.61
+<td  class="rgt rm">17,461,964,800
+<tr>
+<td  class="lm">2009-11-18
+<td  class="rgt">3,287.26
+<td  class="rgt">3,315.87
+<td  class="rgt">3,274.21
+<td  class="rgt">3,303.23
+<td  class="rgt rm">15,866,395,200
+<tr>
+<td  class="lm">2009-11-17
+<td  class="rgt">3,291.04
+<td  class="rgt">3,298.38
+<td  class="rgt">3,275.30
+<td  class="rgt">3,282.89
+<td  class="rgt rm">16,603,730,500
+<tr>
+<td  class="lm">2009-11-16
+<td  class="rgt">3,206.43
+<td  class="rgt">3,275.55
+<td  class="rgt">3,206.43
+<td  class="rgt">3,275.05
+<td  class="rgt rm">20,037,898,100
+<tr>
+<td  class="lm">2009-11-13
+<td  class="rgt">3,164.65
+<td  class="rgt">3,189.09
+<td  class="rgt">3,127.50
+<td  class="rgt">3,187.65
+<td  class="rgt rm">15,114,749,400
+<tr>
+<td  class="lm">2009-11-12
+<td  class="rgt">3,181.46
+<td  class="rgt">3,199.87
+<td  class="rgt">3,163.08
+<td  class="rgt">3,172.94
+<td  class="rgt rm">13,803,304,700
+<tr>
+<td  class="lm">2009-11-11
+<td  class="rgt">3,176.31
+<td  class="rgt">3,186.60
+<td  class="rgt">3,149.07
+<td  class="rgt">3,175.19
+<td  class="rgt rm">12,682,170,100
+<tr>
+<td  class="lm">2009-11-10
+<td  class="rgt">3,203.17
+<td  class="rgt">3,211.10
+<td  class="rgt">3,176.26
+<td  class="rgt">3,178.61
+<td  class="rgt rm">14,244,801,900
+<tr>
+<td  class="lm">2009-11-09
+<td  class="rgt">3,162.15
+<td  class="rgt">3,176.66
+<td  class="rgt">3,141.77
+<td  class="rgt">3,175.58
+<td  class="rgt rm">13,918,983,500
+<tr>
+<td  class="lm">2009-11-06
+<td  class="rgt">3,176.14
+<td  class="rgt">3,183.57
+<td  class="rgt">3,156.99
+<td  class="rgt">3,164.04
+<td  class="rgt rm">16,349,081,400
+<tr>
+<td  class="lm">2009-11-05
+<td  class="rgt">3,133.50
+<td  class="rgt">3,158.72
+<td  class="rgt">3,122.52
+<td  class="rgt">3,155.05
+<td  class="rgt rm">14,546,576,600
+<tr>
+<td  class="lm">2009-11-04
+<td  class="rgt">3,119.31
+<td  class="rgt">3,141.45
+<td  class="rgt">3,096.35
+<td  class="rgt">3,128.54
+<td  class="rgt rm">14,537,026,800
+<tr>
+<td  class="lm">2009-11-03
+<td  class="rgt">3,085.74
+<td  class="rgt">3,121.20
+<td  class="rgt">3,078.94
+<td  class="rgt">3,114.23
+<td  class="rgt rm">15,055,225,800
+<tr>
+<td  class="lm">2009-11-02
+<td  class="rgt">2,933.82
+<td  class="rgt">3,077.91
+<td  class="rgt">2,923.52
+<td  class="rgt">3,076.65
+<td  class="rgt rm">13,728,611,000
+<tr>
+<td  class="lm">2009-10-30
+<td  class="rgt">3,007.25
+<td  class="rgt">3,027.13
+<td  class="rgt">2,983.93
+<td  class="rgt">2,995.85
+<td  class="rgt rm">10,479,218,700
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript">var google=google||{};var _cleardot = '/finance/s/m4C5KaofCbA/images/cleardot.gif';</script>
+<script type="text/javascript" src="/finance/s/1IChmSdBw_o/js/finance-opt.js?hl=zh-CN&gl=cn"></script>
+<script type="text/javascript">
+(function(){var d=navigator.userAgent.toLowerCase().indexOf("msie")!=-1;function e(){for(var a=document.styleSheets,b=a.length-1;b>=0;--b){var c=a[b].href;if(c)if(c.indexOf("styles/finance_")!=-1||c.indexOf("styles_")!=-1)return a[b]}return null}function f(){var a=e();if(a){a=a.rules;return a.length>0&&a[a.length-1].selectorText==".lastFinanceRule"}return false}
+function g(){if(document.scripts)for(var a=0;a<document.scripts.length;++a){var b=document.scripts[a];if(b&&b.src.indexOf("/js/gen_finance.js")!=-1)return b}return null}function _chkCssJs(){if(d){if(typeof _lastFinanceFn!="function"){var a=g();if(a&&a.src){var b=a.src.indexOf("?")!=-1?"&":"?";a.src+=b+"zx="+Math.random()}}if(!f())if((a=e())&&a.href){b=a.href.indexOf("?")!=-1?"&":"?";a.href+=b+"zx="+Math.random()}}};_chkCssJs();})();
+  
+    _setStickyUrlParams("");
+  </script>
+<script>
+function initPage() {
+var isOpera = navigator.userAgent.toLowerCase().indexOf('opera') >= 0;
+if (!isOpera) {
+_InitDatePickerFormatter("yyyy-MM-dd");
+_AddDatePickerToInput("fromdate");
+_AddDatePickerToInput("todate");
+}
+google.finance.applyPagination(
+0,
+30,
+252,
+'http:\x2F\x2Fwww.google.cn\x2Ffinance\x2Fhistorical?q=SHA:000001',
+'historical_price');
+}
+_eventid = 'AFciS4OgJ4fcwAPkmIixBw';
+var google = google || {};
+google.finance = google.finance || {};
+google.finance.data = {common:{rq:{ct:""},up:"chr",down:"chg",linktargetInternal:"target=_blank",hash:""},stickyUrlArgs:""};
+google.finance.data.numberFormat = [{'threshold':10000, 'symbol':'\u4e07'}, {'threshold':100000000,'symbol':'\u4ebf'}, {'threshold':1000000000000,'symbol':'\u4e07\u4ebf'}] ;
+if (_s_Store) {
+_s_Store._allowMatchAdvancedSearch = true;
+var _fieldToDisplayNameMap = {GrossMargin:"毛利润率&nbsp;(%)",Return1Week:"1 周回报率",Return156Week:"156 周回报率",NextYearEPS:"下一年每股收益",LTDebtToAssetsYear:"长期债券/资产（上一年）(%)",RevenueGrowthRate5Years:"5 年收入增长率",EarningsAfterTaxes:"税后收益",DividendPerShare:"每股股息",MarketCap:"市值",NetProfitMarginPercent:"净利润率&nbsp;(%)",Float:"流通股数量",EarningsBeforeTaxes:"税前收益",QuotePercChange:"股价涨跌幅&nbsp;(%)",TotalDebtToEquityYear:"总负债/股权（上一年）(%)",TotalDebtToCapitalQuarter:"总负债/资本（上一季度）(%)",LTDebtToCapitalQuarter:"长期负债/资本（上一年）(%)",EPSGrowthRate10Years:"10 年每股收益增长率",Beta:"贝塔系数",ReturnOnAssetsPTM:"资产回报率（过去12个月）(%)",CapitalGain:"资本收益",BetaDown:"RAS 贝塔系数降低",IncomeDividend:"收益股息",RevenueGrowthRate10Years:"10 年收入增长率",MarketCapShareBasis:"市值股票基础",IAD:"每年指定的股息率",Return4Week:"4 周回报率",Price150DayAverage:"150 天均价",EPSGrowthRate5Years:"5 年每股收益增长率",ReturnOnAssetsTTM:"资产回报率（过去 12 个月）(%)",TotalDebtToAssetsYear:"总负债/资产（上一年）(%)",Volume:"成交量",DividendRecentQuarter:"上季度股息",CurrentRatioYear:"流动比率",Low52Week:"52 周最低价",ExpenseRatio:"开支比率",Price13WeekPercChange:"13 周价格涨跌幅&nbsp;(%)",Price1DayPercChange:"1 日价格涨跌幅&nbsp;(%)",ReturnOnEquity5Years:"股权回报率（平均 5 年）(%)",TotalDebtToCapitalYear:"总负债/资本（上一年）(%)",TotalDebtToAssetsQuarter:"总负债/资产（上一季度）(%)",NavChange:"资产净值变化",OperatingMargin:"营运利润率&nbsp;(%)",DPSRecentYear:"每股股息（上一年）",ANI:"税后收益（上一年）",AverageVolume:"平均成交量",High52Week:"52 周最高价",Return13Week:"13 周回报率",PriceToCashFlowPerShare:"每股的价格与现金流比率",ATAXRATE:"税率（上一年）",Price26
