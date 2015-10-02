@@ -13,38 +13,43 @@ from multiprocessing.dummy import Pool as ThreadPool
 urls = [
     'http://hq.sinajs.cn/list=sz160125',
     'http://hq.sinajs.cn/list=sh600585', 
-    'http://hq.sinajs.cn/list=sz002594', 
-    'http://hq.sinajs.cn/list=sh510900', 
-    'http://ichart.yahoo.com/table.csv?s=600000.ss&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d', 
-    'http://ichart.yahoo.com/table.csv?s=002594.sz&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d', 
-    'http://ichart.yahoo.com/table.csv?s=160125.sz&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d',
+    #'http://hq.sinajs.cn/list=sz002594', 
+    #'http://hq.sinajs.cn/list=sh510900', 
+    #'http://ichart.yahoo.com/table.csv?s=600000.ss&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d', 
+    #'http://ichart.yahoo.com/table.csv?s=002594.sz&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d', 
+    #'http://ichart.yahoo.com/table.csv?s=160125.sz&a=01&b=01&c=1990&d=08&e=31&f=2015&g=d',
     ]
 
 rslt = []
 import os
+import sys
 
 def dataFromUrl(url):
+    import contextlib
     global rslt, lock
     try: 
         req = Request( url )
-        resp = urlopen(req)
-        x = resp.read()
+        with contextlib.closing( urlopen(req, timeout=10) ) as resp:
+            x = resp.read()
     except:
+        str = 'thread pid/name:%s/%s, url: %s\r\n' % (os.getpid(), threading.currentThread().getName(), url)
+        sys.stdout.write( str)
         return
-    lock.acquire()
-    print( 'thread pid/name:%s/%s, url: %s\r\n', (os.getpid(), threading.currentThread().getName(), url) )
+    #lock.acquire()
+    str = 'thread pid/name:%s/%s, url: %s\r\n' % (os.getpid(), threading.currentThread().getName(), url)
+    sys.stdout.write( str )
     rslt.append( x )
-    lock.release()
+    #lock.release()
 
 import threading
 
 # Make the Pool of workers
-pool = ThreadPool(4) 
+pool = ThreadPool(1) 
 # Open the urls in their own threads
 # and return the results
 lock = threading.RLock()
 #for url in urls[3:]:
-dataFromUrl(urls[-1])
+#dataFromUrl(urls[-1])
 
 results = pool.map(dataFromUrl, urls)
 #close the pool and wait for the work to finish 

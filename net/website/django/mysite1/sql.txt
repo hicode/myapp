@@ -1,0 +1,415 @@
+BEGIN;
+CREATE TABLE "myapp_market" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" varchar(8) NOT NULL UNIQUE,
+    "currency" varchar(3) NOT NULL
+)
+;
+CREATE TABLE "myapp_product" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "code" varchar(8) NOT NULL,
+    "market" varchar(8) NOT NULL,
+    "submarket" varchar(8),
+    "name" varchar(16) NOT NULL,
+    "type" varchar(1),
+    "bDataHist" bool NOT NULL,
+    "errInfo" varchar(32),
+    UNIQUE ("code", "market")
+)
+;
+CREATE TABLE "myapp_product_" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "source" varchar(8) NOT NULL,
+    "code" varchar(8) NOT NULL,
+    "market" varchar(8) NOT NULL,
+    "submarket" varchar(8),
+    "name" varchar(16) NOT NULL,
+    "type" varchar(1) NOT NULL,
+    "bDataHist" bool NOT NULL,
+    "errInfo" varchar(32),
+    UNIQUE ("source", "code", "market")
+)
+;
+CREATE TABLE "myapp_productconcept" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "groupName" varchar(8) NOT NULL,
+    "groupDesc" varchar(32) NOT NULL,
+    UNIQUE ("product_id", "groupName")
+)
+;
+CREATE TABLE "myapp_stockinfo" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL UNIQUE REFERENCES "myapp_product" ("id"),
+    "companyName" varchar(32) NOT NULL,
+    "IPOShares" decimal NOT NULL,
+    "IPOPrice" decimal NOT NULL
+)
+;
+CREATE TABLE "myapp_bigtrade" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "buyer" varchar(32) NOT NULL,
+    "shares" decimal NOT NULL,
+    "price" decimal NOT NULL,
+    "date" date NOT NULL,
+    UNIQUE ("product_id", "buyer", "date")
+)
+;
+CREATE TABLE "myapp_productfinacialrpt" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "date" date NOT NULL,
+    "earnings" decimal NOT NULL,
+    "bookVal" decimal NOT NULL,
+    "sales" decimal NOT NULL,
+    "totalShares" decimal NOT NULL,
+    "totalHolder" decimal NOT NULL
+)
+;
+CREATE TABLE "myapp_productdata" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "date" date NOT NULL,
+    "rzrq" decimal NOT NULL,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_productidx" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "date" date NOT NULL,
+    "cci" decimal,
+    "psy" decimal,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_watchlist" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL UNIQUE REFERENCES "myapp_product" ("id"),
+    "watchReason" varchar(256) NOT NULL
+)
+;
+CREATE TABLE "myapp_kdaily" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    "weekday" decimal,
+    "week" decimal,
+    "month" decimal,
+    "year" decimal,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_cns" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_cni" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_cnf" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_hks" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_hki" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_hkf" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdaily_hkd" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_seqdate" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "date" date NOT NULL,
+    "pDate" date,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kdate" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "date" date NOT NULL,
+    UNIQUE ("product_id", "date")
+)
+;
+CREATE TABLE "myapp_kmonth" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "startDate" date NOT NULL,
+    "pDate" date,
+    "hDate" date NOT NULL,
+    "lDate" date NOT NULL,
+    UNIQUE ("product_id", "startDate")
+)
+;
+CREATE TABLE "myapp_kweek" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "adjC" decimal,
+    "amt" decimal,
+    "vol" decimal NOT NULL,
+    "startDate" date NOT NULL,
+    "pDate" date,
+    "hDate" date NOT NULL,
+    "lDate" date NOT NULL,
+    UNIQUE ("product_id", "startDate")
+)
+;
+CREATE TABLE "myapp_kmin" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal NOT NULL,
+    "o" decimal NOT NULL,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "chngPerc" decimal,
+    "amt" decimal NOT NULL,
+    "vol" decimal NOT NULL,
+    "date" date NOT NULL,
+    "minute" datetime NOT NULL,
+    "pMinute" datetime
+)
+;
+CREATE TABLE "myapp_traderealtime" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id"),
+    "p" decimal,
+    "o" decimal,
+    "h" decimal,
+    "l" decimal,
+    "amt" decimal,
+    "vol" decimal,
+    "date" date,
+    "tick" datetime NOT NULL,
+    "pTick" datetime,
+    "changeSpeedMin" decimal,
+    "changeSpeed5Min" decimal,
+    "changePerc" decimal,
+    "c" decimal NOT NULL,
+    "tickAmt" decimal NOT NULL,
+    "tickVol" decimal NOT NULL,
+    "dealNum" decimal NOT NULL,
+    "direction" bool NOT NULL,
+    "buy0" decimal,
+    "buy1" decimal,
+    "buy2" decimal,
+    "buy3" decimal,
+    "buy4" decimal,
+    "buy5" decimal,
+    "buy6" decimal,
+    "buy7" decimal,
+    "buy8" decimal,
+    "buy9" decimal,
+    "buy0v" decimal,
+    "buy1v" decimal,
+    "buy2v" decimal,
+    "buy3v" decimal,
+    "buy4v" decimal,
+    "buy5v" decimal,
+    "buy6v" decimal,
+    "buy7v" decimal,
+    "buy8v" decimal,
+    "buy9v" decimal,
+    "sell0" decimal,
+    "sell1" decimal,
+    "sell2" decimal,
+    "sell3" decimal,
+    "sell4" decimal,
+    "sell5" decimal,
+    "sell6" decimal,
+    "sell7" decimal,
+    "sell8" decimal,
+    "sell9" decimal,
+    "sell0v" decimal,
+    "sell1v" decimal,
+    "sell2v" decimal,
+    "sell3v" decimal,
+    "sell4v" decimal,
+    "sell5v" decimal,
+    "sell6v" decimal,
+    "sell7v" decimal,
+    "sell8v" decimal,
+    "sell9v" decimal
+)
+;
+CREATE TABLE "myapp_markettrend" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "market_id" integer NOT NULL REFERENCES "myapp_market" ("id"),
+    "date" date NOT NULL,
+    "pDate" date,
+    "endDate" date,
+    "h" decimal NOT NULL,
+    "l" decimal NOT NULL,
+    "c" decimal NOT NULL,
+    "status" varchar(3) NOT NULL,
+    "trendUp" bool NOT NULL,
+    "maxAmp" decimal NOT NULL,
+    "currentAmp" decimal NOT NULL,
+    "drawdown" decimal NOT NULL
+)
+;
+CREATE TABLE "myapp_marketperiod" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "market_id" integer NOT NULL REFERENCES "myapp_market" ("id"),
+    "date" date NOT NULL,
+    "pDate" date
+)
+;
+CREATE TABLE "myapp_productstatus" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "product_id" integer NOT NULL REFERENCES "myapp_product" ("id")
+)
+;
+CREATE INDEX "myapp_productconcept_7f1b40ad" ON "myapp_productconcept" ("product_id");
+CREATE INDEX "myapp_bigtrade_7f1b40ad" ON "myapp_bigtrade" ("product_id");
+CREATE INDEX "myapp_productfinacialrpt_7f1b40ad" ON "myapp_productfinacialrpt" ("product_id");
+CREATE INDEX "myapp_productdata_7f1b40ad" ON "myapp_productdata" ("product_id");
+CREATE INDEX "myapp_productidx_7f1b40ad" ON "myapp_productidx" ("product_id");
+CREATE INDEX "myapp_kdaily_7f1b40ad" ON "myapp_kdaily" ("product_id");
+CREATE INDEX "myapp_kdaily_cns_7f1b40ad" ON "myapp_kdaily_cns" ("product_id");
+CREATE INDEX "myapp_kdaily_cni_7f1b40ad" ON "myapp_kdaily_cni" ("product_id");
+CREATE INDEX "myapp_kdaily_cnf_7f1b40ad" ON "myapp_kdaily_cnf" ("product_id");
+CREATE INDEX "myapp_kdaily_hks_7f1b40ad" ON "myapp_kdaily_hks" ("product_id");
+CREATE INDEX "myapp_kdaily_hki_7f1b40ad" ON "myapp_kdaily_hki" ("product_id");
+CREATE INDEX "myapp_kdaily_hkf_7f1b40ad" ON "myapp_kdaily_hkf" ("product_id");
+CREATE INDEX "myapp_kdaily_hkd_7f1b40ad" ON "myapp_kdaily_hkd" ("product_id");
+CREATE INDEX "myapp_seqdate_7f1b40ad" ON "myapp_seqdate" ("product_id");
+CREATE INDEX "myapp_kdate_7f1b40ad" ON "myapp_kdate" ("product_id");
+CREATE INDEX "myapp_kmonth_7f1b40ad" ON "myapp_kmonth" ("product_id");
+CREATE INDEX "myapp_kweek_7f1b40ad" ON "myapp_kweek" ("product_id");
+CREATE INDEX "myapp_kmin_7f1b40ad" ON "myapp_kmin" ("product_id");
+CREATE INDEX "myapp_traderealtime_7f1b40ad" ON "myapp_traderealtime" ("product_id");
+CREATE INDEX "myapp_markettrend_27a7eb12" ON "myapp_markettrend" ("market_id");
+CREATE INDEX "myapp_marketperiod_27a7eb12" ON "myapp_marketperiod" ("market_id");
+CREATE INDEX "myapp_productstatus_7f1b40ad" ON "myapp_productstatus" ("product_id");
+
+COMMIT;

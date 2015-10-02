@@ -8,7 +8,7 @@ prjPath = r'E:\GitHub\myapp\net\website\django\mysite1'
 dataPath = r'D:\data'
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from net.url.dataSource import regDataFromUrl, dataFromUrl
 import re
 import codecs
@@ -160,9 +160,9 @@ def qryRealtime():
         prod = prodIdMap[id]
         number += 1
         if number == 1 :
-            batchQryProducts = prod.market.lower() + prod.code
+            batchQryProducts = prod['market'].lower() + prod['code']
         else :
-            batchQryProducts += (',' + prod.market.lower() + prod.code)
+            batchQryProducts += (',' + prod['market'].lower() + prod['code'])
             if number == numberPerQry :
                 completeRslt += getAStockRealtime( batchQryProducts )
                 number = 0
@@ -213,7 +213,7 @@ def tickDataFromCsv_(fn,code,market, conn):
     except IOError, e:
         sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
         return ''
-    pid = prodMapId[ code + '.' + market ].id
+    pid = prodMapId[ code + '.' + market ]
     #objLst = []
     recLst = []
     for ln in rslt[1:]:
@@ -234,14 +234,14 @@ def getTickData(conn):
     dateLst = ['20150901', '20150902', '20150907', '20150908', '20150909', '20150910', '20150911', '20150914', '20150915', '20150916', '20150917', '20150918', '20150921', '20150922', '20150923', '20150924', '20150925', '20150928']
     for id in prodIdMap.keys():
         p = prodIdMap[id]
-        if p.submarket == None or p.submarket.strip == '':
+        if p['submarket'] == None or p['submarket'].strip == '':
             continue
-        if p.submarket[2] <> 'S':
+        if p['submarket'][2] <> 'S':
             continue
         for d in dateLst:
-            if p.market <> 'SH' and p.market <> 'SZ':
+            if p['market'] <> 'SH' and p['market'] <> 'SZ':
                 continue
-            fn = r'D:\data\tick\%s\ProcessFile\Stk_Tick\%s\%s%s_%s.csv' % (d, d, p.market.lower(), p.code, d)
+            fn = r'D:\data\tick\%s\ProcessFile\Stk_Tick\%s\%s%s_%s.csv' % (d, d, p['market'].lower(), p['code'], d)
             if not os.path.isfile(fn):
                 continue
             recLst = tickDataFromCsv(fn, id)
@@ -285,189 +285,88 @@ def getDzhTickData():
         sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
         return ''
 
-def workYesterday( d=datetime.now() ):
-    weekday = d.strftime('%w') # if today is Sunday or Monday
-    if weekday == 0:
-        return (datetime.now()- timedelta(2)).strftime('%Y-%m-%d')  # Friday for Sunday
-    elif weekday == 1:
-        return (datetime.now()- timedelta(3)).strftime('%Y-%m-%d')  # Friday for Monday
-    else:
-        return (datetime.now()- timedelta(1)).strftime('%Y-%m-%d')
-
-def getHist(prodDict8Submarket, conn, timeout):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
-    global newBeforeHistBegin, newAfterHistEnd
-
+def getHist(prodDictNoHist8Submarket, conn, timeout):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
     cur = conn.cursor()
-    qryEndDate = "&d=%02d&e=%02d&f=%d" % ( datetime.now().month-1, datetime.now().day, datetime.now().year )
-    qryDate = "a=0&b=1&c=1989%s&g=d" % (qryEndDate)
-    workYesterdayStr = workYesterday()
-    for key in prodDict8Submarket.keys():
+    prodDictWithHist = {}
+    for key in prodDictNoHist8Submarket.keys():
         if key==None or key == '' or key == 'ERR':
             continue
         market = key[:2]
+        if market not in prodDictWithHist.keys(): 
+            prodDictWithHist[market] = []
         #if market == u'SZ':
         #    pass
         if key[2]<>'S' and key[2]<>'I':
             continue
         tblName = 'myapp_kdaily_' + MapSubmarket2Table( key )
-        for prod in prodDict8Submarket[key]:
-            if 'yahoo' in prod.maskSite.split('.'):
-                continue
-
-            if prod.dateHistEnd == None:
-                dateHistEnd = '1900-01-01'
-            else:
-                dateHistEnd = prod.dateHistEnd.strftime('%Y-%m-%d')
-            if dateHistEnd >= workYesterdayStr:
-                continue
-
-            #qryDate = "a=0&b=1&c=1989%s&g=d" % (qryEndDate)
-            '''
-            if prod.dateHistEnd == None:
-                qryDate = "a=0&b=01&c=1989%s&g=d" % (qryEndDate)
-            elif dateHistEnd >= workYesterdayStr:
-                continue
-            else:
-                qryDate = "a=%s&b=%s&c=%s%s&g=d" % ( int(dateHistEnd[5:7])-1, dateHistEnd[-2:], dateHistEnd[:4], qryEndDate )
-            '''
-
-            csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod.code)
-            t = time.clock()
-            if market=='HK' and prod.code[0]=='0':
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code[1:] + '.' + market, qryDate )
-            elif market == 'SH':
-                #market=u'ss'
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + 'ss', qryDate )
-            else:
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + market, qryDate )
-            print('start get url: %s, dataFromUrl start time: %s\r\n' % (url, datetime.now()) )
-            f = dataFromUrl(url, waittime=timeout)
-            if f=='url not found':
-                prod.maskSite += 'yahoo.'
-                prod.save()
-                continue 
-            elif f=='':
-                continue
-            with open(csvfn, 'w') as fp:
-                fp.write( f )
-            print('dataFromUrl time: %.03f\r\n' % (time.clock()-t) )
-            lines = f.split('\n')
-            histRec = []
-            if prod==None:
-                continue
-            for ln in lines[1:]:
-                fLst = ln.split(',')
-                if len(fLst)<7:
-                    continue
-                #if prod.dateHistEnd==None
-                #if fLst[0] <= prod.dateHistEnd.strftime('%Y-%m-%d'):
-                #    if fLst[0] >= prod.dateHistBegin.strftime('%Y-%m-%d'):
-                #        continue;
-                if fLst[0]<=dateHistEnd:
-                    break 
-                histRec.append( [ prod.id ] + fLst )
-                #kd = KDaily( code=prod, market=market, o=fLst[1], c=fLst[4], h=fLst[2], l=fLst[3], vol=fLst[5], date=fLst[0], adjC = fLst[6])
-                #kd.save() 
-            #t=time.clock()
-            if histRec == []:
-                continue
-            else:
-                newAfterHistEnd = True
-                if prod.dateHistEnd == None:
-                    newBeforeHistBegin = True
-            try:
-                cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
-                #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-            except sqlite3.Error,e:
-                sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
-            conn.commit()
-            #print('executemany time: %.03f' % (time.clock()-t) )
-    return
-
-def getHist2Csv(prodDict8Submarket, timeout):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
-    qryEndDate = "&d=%02d&e=%02d&f=%d" % ( datetime.now().month-1, datetime.now().day, datetime.now().year )
-    qryDate = "a=0&b=1&c=1989%s&g=d" % (qryEndDate)
-    for key in prodDict8Submarket.keys():
-        if key==None or key == '' or key == 'ERR':
-            continue
-        market = key[:2]
-        if key[2]<>'S' and key[2]<>'I':
-            continue
-
-        for prod in prodDict8Submarket[key]:
-            if 'yahoo' in prod.maskSite.split('.'):
-                continue
-            csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod.code)
-            if os.path.isfile(csvfn):
-                continue
-
-            if market=='HK' and prod.code[0]=='0':
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code[1:] + '.' + market, qryDate )
-            elif market == 'SH':
-                #market=u'ss'
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + 'ss', qryDate )
-            else:
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + market, qryDate )
-            print('start get url: %s, dataFromUrl start time: %s\r\n' % (url, datetime.now()) )
-            f = dataFromUrl(url, waittime=timeout)
-            if f=='url not found':
-                prod.maskSite += 'yahoo.'
-                prod.save()
-                continue 
-            elif f=='':
-                continue
-            with open(csvfn, 'w') as fp:
-                fp.write( f )
-            print('dataFromUrl time: %.03f\r\n' % (time.clock()-t) )
-    return
-
-def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
-    global newBeforeHistBegin, newAfterHistEnd
-
-    cur = conn.cursor()
-    workYesterdayStr = workYesterday()
-    for key in prodDict8Submarket.keys():
-        if key==None or key == '' or key == 'ERR':
-            continue
-        market = key[:2]
-        if key[2]<>'S' and key[2]<>'I':
-            continue
-        tblName = 'myapp_kdaily_' + MapSubmarket2Table( key )
-        for prod in prodDict8Submarket[key]:
-            if prod.dateHistEnd == None:
-                dateHistEnd = '1900-01-01'
-            else:
-                dateHistEnd = prod.dateHistEnd.strftime('%Y-%m-%d')
-            if dateHistEnd >= workYesterdayStr:
-                continue
-
-            csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod.code)
+        for prod in prodDictNoHist8Submarket[key]:
+            csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod)
             if os.path.isfile(csvfn):
                 with open(csvfn) as fp:
                     f = fp.read() 
             else:
-                continue
+                t = time.clock()
+                if market=='HK' and prod[0]=='0':
+                    url = "http://ichart.yahoo.com/table.csv?s=%s&a=01&b=01&c=1989&d=09&e=26&f=2015&g=d" % ( prod[1:] + '.' + market )
+                elif market == 'SH':
+                    #market=u'ss'
+                    url = "http://ichart.yahoo.com/table.csv?s=%s&a=01&b=01&c=1989&d=09&e=26&f=2015&g=d" % ( prod + '.' + 'ss' )
+                else:
+                    url = "http://ichart.yahoo.com/table.csv?s=%s&a=01&b=01&c=1989&d=09&e=26&f=2015&g=d" % ( prod + '.' + market )
+                print('start get url: %s, dataFromUrl start time: %s\r\n' % (url, datetime.now()) )
+                f = dataFromUrl(url, waittime=timeout)
+                if f=='':
+                    continue
+                with open(csvfn, 'w') as fp:
+                    fp.write( f )
+                print('dataFromUrl time: %.03f\r\n' % (time.clock()-t) )
             lines = f.split('\n')
             histRec = []
+            p = prodMapId[ prod+'.'+market ]    #p = Product.objects.get(id=prod_id)        #except ObjectDoesNotExist:
+            if p==None:
+                continue
             for ln in lines[1:]:
                 fLst = ln.split(',')
                 if len(fLst)<7:
                     continue
-                if fLst[0]<=dateHistEnd:
-                    break 
-                histRec.append( [ prod.id ] + fLst )
-            if histRec == []:
-                continue
-            else:
-                newAfterHistEnd = True
-                if prod.dateHistEnd == None:
-                    newBeforeHistBegin = True
+                #if p['dateHistEnd']==None
+                #if fLst[0] <= p['dateHistEnd'].strftime('%Y-%m-%d'):
+                #    if fLst[0] >= p['dateHistBegin'].strftime('%Y-%m-%d'):
+                #        continue;
+                histRec.append( [ p['id'] ] + fLst )
+                #kd = KDaily( code=prod, market=market, o=fLst[1], c=fLst[4], h=fLst[2], l=fLst[3], vol=fLst[5], date=fLst[0], adjC = fLst[6])
+                #kd.save() 
+            #t=time.clock()
             try:
                 cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
                 #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
             except sqlite3.Error,e:
-                sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
+                sys.stdout.write(  'except while executemany insert:' + prod+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
+            #print('executemany time: %.03f' % (time.clock()-t) )
+            prodDictWithHist[market].append(prod)
+            '''
+            p = Product.objects.get( code=prod, market=market )
+            p.bDataHist=True
+            p.save()
+            '''
+    for key in prodDictWithHist.keys():
+        for prod in prodDictWithHist[key]:
+            #p = Product.objects.filter( code=prod, market=key ).update(bDataHist=True)
+            try:
+                p = Product.objects.get( code=prod, market=key )
+                p.bDataHist=True
+                p.save()
+            except ObjectDoesNotExist:
+                print 'ObjectDoesNotExist: %s.%s' % (prod, market)
+            '''
+            try:
+                p1 = Product_.objects.get( code=prod, market=key )
+                p1.bDataHist=True
+                p1.save()
+            except ObjectDoesNotExist:
+                print 'ObjectDoesNotExist: %s.%s' % (prod, market)
+            '''
     return
 
 
@@ -500,10 +399,10 @@ def getQianLongDailyRpt(fn, conn): #, market):
         p = prodMapId[ code + '.' + market ]    # p = Product.objects.get(id=prod_id)        #except ObjectDoesNotExist:
         if code=='600000':
             pass
-        #if code in prodDict8Submarket[ Submarket( market, code) ]:
+        #if code in prodDictNoHist8Submarket[ Submarket( market, code) ]:
         #    continue
-        if p.dateHistBegin==None or ( dateStr > p.dateHistEnd.strftime('%Y-%m-%d') or dateStr < p.dateHistBegin.strftime('%Y-%m-%d') ):
-            histRec.append( [ p.id ] + [dateStr, fld[11], fld[12], fld[13], fld[4], fld[6], fld[4]] )   # set adjc = c 
+        if p['dateHistBegin']==None or ( dateStr > p['dateHistEnd'].strftime('%Y-%m-%d') or dateStr < p['dateHistBegin'].strftime('%Y-%m-%d') ):
+            histRec.append( [ p['id'] ] + [dateStr, fld[11], fld[12], fld[13], fld[4], fld[6], fld[4]] )   # set adjc = c 
         else:
             continue 
     try:
@@ -517,61 +416,20 @@ def getQianLongDailyRpt(fn, conn): #, market):
 
 def priceAdjust(conn):
     cur = conn.cursor()
-    # backward adjust price = real-price / rationFrwd
-    cur.execute( "update myapp_kdaily_cns set ratioFrwd=c/adjC" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
-    cur.execute( "update myapp_kdaily_hks set ratioFrwd=c/adjC" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
-    cur.execute( "update myapp_product set ratioFrwdBegin = (select ratioFrwd from myapp_kdaily_cns where myapp_kdaily_cns.product_id = myapp_product.id and myapp_kdaily_cns.date = myapp_product.dateHistBegin ) where market='SZ'" )
-    cur.execute( "update myapp_product set ratioFrwdBegin = (select ratioFrwd from myapp_kdaily_cns where myapp_kdaily_cns.product_id = myapp_product.id and myapp_kdaily_cns.date = myapp_product.dateHistBegin ) where market='SH'" )
-    cur.execute( "update myapp_product set ratioFrwdBegin = (select ratioFrwd from myapp_kdaily_hks where myapp_kdaily_hks.product_id = myapp_product.id and myapp_kdaily_hks.date = myapp_product.dateHistBegin ) where market='HK'" )
-    conn.commit()
-
-    submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
     # price of history data from yahoo is forward adjust price
-    # backward adjust price = real-price * ratioBack,  ratioBack = 1st rationFrwd / rationFrwd
-    for key in prodDict8Submarket:
-        tblName = MapSubmarket2Table( key ).lower()
-        if tblName <> 'cns' and tblName <> 'hks':
-            continue 
-        for prod in prodDict8Submarket[key]:
-            if prod.dateHistEnd == None:
-                continue
-            elif prod.ratioFrwdBegin == None:
-                sys.stdout.write(  'dateHistEnd is not Null but ratioFrwdBegin isnull:' + prod.code+'.'+prod.submarket + '\r\n' )
-                continue
-
-            try:
-                cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except sqlite3.Error,e:
-                sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
-    conn.commit()
+    # backward adjust price 
 
 
 def postImportData(conn):
     cur = conn.cursor()
     
-    # move/append new data to internal no-update table, ratioFrwd may change ??
-
     # mark time boundary of data imported
-    if newAfterHistEnd:
-        cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id) where market='SZ'" )
-        cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id) where market='SH'" )
-        cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_hks where myapp_product.id = myapp_kdaily_hks.product_id group by product_id) where market='HK'" )
-        #cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_hki where myapp_product.id = myapp_kdaily_hki.product_id group by product_id) where submarket='HKI'" )
-        cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_cni where myapp_product.id = myapp_kdaily_cni.product_id group by product_id) where submarket='SZI'" )
-        cur.execute( "update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_cni where myapp_product.id = myapp_kdaily_cni.product_id group by product_id) where submarket='SHI'" )
-
-    if newBeforeHistBegin:
-        cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id) where market='SZ'" )
-        cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id) where market='SH'" )
-        cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_hks where myapp_product.id = myapp_kdaily_hks.product_id group by product_id) where market='HK'" )
-        #cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_hki where myapp_product.id = myapp_kdaily_hki.product_id group by product_id) where submarket='HKI'" )
-        cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_cni where myapp_product.id = myapp_kdaily_cni.product_id group by product_id) where submarket='SZI'" )
-        cur.execute( "update myapp_product set dateHistEnd =   (select max(date) from myapp_kdaily_cni where myapp_product.id = myapp_kdaily_cni.product_id group by product_id) where submarket='SHI'" )
-
+    cur.execute( 'update myapp_product set dateHistBegin = (select min(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id)' )
+    cur.execute( 'update myapp_product set dateHistEnd = (select max(date) from myapp_kdaily_cns where myapp_product.id = myapp_kdaily_cns.product_id group by product_id)' )
     #cur.execute( "update myapp_product set dateHistEnd = '' where dateHistEnd isnull" )
 
     # mark time boundary of data imported
-
+    
 
     conn.commit()
 
@@ -600,20 +458,14 @@ def prepareTrading():
         # prodDictNoHist8Submarket[ submarket ] = []
         # prodDictWithHist8Submarket[ submarket ] = []
     for prod in prodAll:
-        if prod.submarket == '' or prod.submarket == None:
-            continue 
-        if prod.submarket[2] <> 'S' and prod.submarket[2] <> 'I':
-            continue 
-        prodIdMap[prod.id] = prod # {'code':prod.code, 'market':prod.market, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket}
-        prodMapId[prod.code+'.'+prod.market] = prod #{'id':prod.id, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket }
-        prodDict8Submarket[ prod.submarket ].append( prod ) #{'id':prod.id, 'code':prod.code, 'market':prod.market, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket} )
-        '''
+        prodIdMap[prod.id] = {'code':prod.code, 'market':prod.market, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket}
+        prodMapId[prod.code+'.'+prod.market] = {'id':prod.id, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket }
+        prodDict8Submarket[ prod.submarket ].append( {'id':prod.id, 'code':prod.code, 'market':prod.market, 'bHist':prod.bDataHist, 'dateHistBegin':prod.dateHistBegin, 'dateHistEnd':prod.dateHistEnd, 'type':prod.type, 'submarket': prod.submarket} )
         #prodDict[ prod.market ][prod.type].append( prod.code )
         if not prod.bDataHist:
             # prodDictNoHist8Submarket[ prod.submarket ].append( prod.code )
         else:
             # prodDictWithHist8Submarket[ prod.submarket ].append( prod.code )
-        '''
     #return submarketLst, prodAll, prodIdMap, prodMapId, prodDict, prodDict8Submarket,                            prodDictNoHist8Submarket
     return submarketLst,           prodIdMap, prodMapId,           prodDict8Submarket #, prodDictWithHist8Submarket,prodDictNoHist8Submarket
 
@@ -686,7 +538,7 @@ def getDzhCodeLst(fn, market):
     for ln in lines[2:]:
         fLst = ln.strip().split('\t')
         #recLst.append( [p.id] + fLst[2:] )
-        p=Product(source='dzh', code=fLst[0], type='', market=market, name=fLst[1].decode('GBK'), submarket = Submarket(market, fLst[0]), masksite='.' )   #, bDataHist=False
+        p=Product(source='dzh', code=fLst[0], type='', market=market, bDataHist=False, name=fLst[1].decode('GBK'), submarket = Submarket(market, fLst[0]) )
         recLst.append(p)
     Product.objects.bulk_create( recLst )
 
@@ -699,9 +551,7 @@ def dataCheck(conn):
     # wrong data
     cur = conn.cursor()
 
-    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_cns where adjc isnull or adjc=0 or o=0 or h=0 or l=0 or c=0)" )
-    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_hks where adjc isnull or adjc=0 or o=0 or h=0 or l=0 or c=0)" )
-    conn.commit()
+    cur.execute( "update myapp_product set errInfo = 'adjc=0' where id in (select distinct(product_id) from myapp_kdaily_cns where adjc=0)" )
 
 
 
@@ -712,39 +562,39 @@ def redundant(conn):
     #cur.execute( "update myapp_product set dateHistEnd = '' where dateHistEnd isnull" )
 
     # weekday, week, month, year
-    #'''
+    '''
     cur.execute( "update myapp_kdaily_cns set weekday = strftime('%w', date), week = strftime('%W', date), month = strftime('%m', date), year = strftime('%Y', date);" )
-    #cur.execute( 'insert into myapp_kdaily_cns_tmp select * from myapp_kdaily_cns order by product_id, date;' )
-    cur.execute( "update myapp_kdaily_cns_tmp set h=h*adjC/c, l=l*adjC/c, o=o*adjC/c, amt=c, c=adjC, adjC=amt;" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
-    #'''
-    # cur.execute( 'ALTER TABLE myapp_kdaily_cns RENAME TO myapp_kdaily_cns2; ALTER TABLE myapp_kdaily_cns_tmp RENAME TO myapp_kdaily_cns;' )
-    # cur.execute( "insert into myapp_kdaily_cns select id, p, o, h, l, c, chngPerc, adjC, amt, vol, product_id, date, pDate,  strftime('%w', date) weekday, strftime('%W', date) week, strftime('%m', date) month, strftime('%Y', date) year from myapp_kdaily_cns_tmp;" )
+    cur.execute( 'insert into myapp_kdaily_cns1 select * from myapp_kdaily_cns order by product_id, date;' )
+    cur.execute( "update myapp_kdaily_cns1 set h=h*adjC/c, l=l*adjC/c, o=o*adjC/c, amt=c, c=adjC, adjC=amt;" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
+    '''
+    # cur.execute( 'ALTER TABLE myapp_kdaily_cns RENAME TO myapp_kdaily_cns2; ALTER TABLE myapp_kdaily_cns1 RENAME TO myapp_kdaily_cns;' )
+    # cur.execute( "insert into myapp_kdaily_cns select id, p, o, h, l, c, chngPerc, adjC, amt, vol, product_id, date, pDate,  strftime('%w', date) weekday, strftime('%W', date) week, strftime('%m', date) month, strftime('%Y', date) year from myapp_kdaily_cns1;" )
     conn.commit()
 
-    #cur.execute("insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month<6 group by product_id;")
-    #conn.commit()
+    #cur.execute("insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns1 where year=2015 and month<6 group by product_id;")
+    conn.commit()
 
     cur.executescript(
 '''
 delete from myapp_productposition;
-insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month<6 group by product_id;
+insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns1 where year=2015 and month<6 group by product_id;
 
 delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month>5 group by product_id;
+insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns1 where year=2015 and month>5 group by product_id;
 update myapp_productposition set h3Mon=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 update myapp_productposition set l3Mon=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 
 delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2014 group by product_id;
+insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns1 where year=2014 group by product_id;
 update myapp_productposition set h2Year=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 update myapp_productposition set l2Year=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 
 delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2013 group by product_id;
+insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns1 where year=2013 group by product_id;
 update myapp_productposition set h3Year=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 update myapp_productposition set l3Year=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
 
-update myapp_productposition set c=(select c from myapp_kdaily_cns_tmp where myapp_productposition.product_id=myapp_kdaily_cns_tmp.product_id and myapp_kdaily_cns_tmp.date='2015-09-23');
+update myapp_productposition set c=(select c from myapp_kdaily_cns1 where myapp_productposition.product_id=myapp_kdaily_cns1.product_id and myapp_kdaily_cns1.date='2015-09-23');
 
 update myapp_productposition set per2H = hyear / c;
 update myapp_productposition set per2l = c / l3mon;
@@ -755,26 +605,6 @@ update myapp_productposition set per2l = c / lyear;
     select  *, per2l*per2h space from prodpos where per2l*per2h>2.5 and c/l3year<1.2 l3mon<lyear order by per2l;'''
     conn.commit()
 
-
-
-def addPreClose(conn):
-    cur = conn.cursor()
-    for key in prodDict8Submarket:
-        tblName = MapSubmarket2Table( key ).lower()
-        if tblName <> 'cns' and tblName <> 'hks' and tblName <> 'cni' and tblName <> 'hki':
-            continue 
-        for prod in prodDict8Submarket[key]:
-            if prod.dateHistEnd == None:
-                continue
-            elif prod.ratioFrwdBegin == None:
-                sys.stdout.write(  'dateHistEnd is not Null but ratioFrwdBegin isnull:' + prod.code+'.'+prod.submarket + '\r\n' )
-                continue
-
-            try:
-                cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except sqlite3.Error,e:
-                sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
-    conn.commit()
 
 
 
@@ -802,8 +632,8 @@ t = time.clock()
 
 l1 = getSSEProdLst()
 for item in l1:
-    p1=Product_(code=item[0], type='STOCK', market='SH', bDataHist=False, name=item[1], submarket = Submarket('SH', item[0]), masksite='.' )
-    #p1=Product_(code=item[0], type='stock', market=Market.objects.get(name='SH'), bDataHist=False, name=item[1], masksite='.' )
+    p1=Product_(code=item[0], type='STOCK', market='SH', bDataHist=False, name=item[1], submarket = Submarket('SH', item[0]) )
+    #p1=Product_(code=item[0], type='stock', market=Market.objects.get(name='SH'), bDataHist=False, name=item[1] )
     p1.save()
 
 #prodLst = Product_.objects.all()
@@ -814,56 +644,40 @@ l2 = getSZSEProdLst()
 #transaction.Atomic()
 for key in l2:
     for item in l2[key]:
-        p2=Product_(code=item[0],name=item[1],type=key, market='SZ', bDataHist=False, submarket = Submarket('SZ', item[0]), masksite='.')
-        #p2=Product_(code=item[0],name=item[1],type=key, market=Market.objects.get(name='SZ'), bDataHist=False, masksite='.')
+        p2=Product_(code=item[0],name=item[1],type=key, market='SZ', bDataHist=False, submarket = Submarket('SZ', item[0]))
+        #p2=Product_(code=item[0],name=item[1],type=key, market=Market.objects.get(name='SZ'), bDataHist=False)
         p2.save()
 #transaction.commit()
 print('getSSEProdLst|getSZSEProdLst time: %.03f' % (time.clock()-t) )
 '''
 
-newBeforeHistBegin = False  # 假定每次数据入库后不会缺少dateHistBefore前时间段的数据，即dateHistBefore一旦产生后不会再变更
-newAfterHistEnd = False
-
 t = time.clock()
-postImportData(conn)
-print('postImportData time: %.03f' % (time.clock()-t) )
-
-t = time.clock()
-submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
+submarketLst, prodIdMap, prodMapId, prodDict8Submarket, prodDictWithHist8Submarket, prodDictNoHist8Submarket = prepareTrading()
 print('prepareTrading time: %.03f' % (time.clock()-t) )
 
-#'''
-t = time.clock()
-for i in range(11):
-    getHist2Csv( prodDict8Submarket, 10+10*(i/2) )
-print('getHist2Csv time: %.03f' % (time.clock()-t) )
-
-
-t = time.clock()
-newBeforeHistBegin = False
-newAfterHistEnd = False
-getHistFromCsv(prodDict8Submarket, conn)
-postImportData(conn)
-submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
-print('getHistFromCsv time: %.03f' % (time.clock()-t) )
+'''
+from django.db import transaction
+transaction.set_autocommit(autocommit=False)
+#transaction.Atomic()
+i=0
+for item in prodLst:
+    p2=Product(code=item.code,market=item.market)
+    p2.save()
+    i+=1
+    if i>3:
+        break
+transaction.commit()
+'''
 
 # getDzhCodeLst time: 55.077
 # getSSEProdLst|getSZSEProdLst time: 139.763
 # prepareTrading time: 0.937
 
+#postImportData(conn)
+
 t = time.clock()
-for i in range(11):
-    newBeforeHistBegin = False
-    newAfterHistEnd = False
-    getHist( prodDict8Submarket, conn, 10+10*(i/2) )
-    submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
-    postImportData(conn)
+getHist(prodDictNoHist8Submarket, conn, 30)
 print('getHist time: %.03f' % (time.clock()-t) )
-
-
-t = time.clock()
-priceAdjust(conn)
-print('priceAdjust time: %.03f' % (time.clock()-t) )
 
 
 fl = [r'D:\data\dailydzh\20150922.txt', r'D:\data\dailydzh\20150923.txt', r'D:\data\dailydzh\20150924.txt', r'D:\data\dailydzh\20150925.txt', r'D:\data\dailydzh\20150928.txt']
@@ -875,6 +689,10 @@ print('getQianLongDailyRpt time: %.03f' % (time.clock()-t) )
 #postImportData(conn)
 #fl = [u'D:\data\报价--深证Ａ股.txt', u'D:\data\报价--上证Ａ股.txt']
 #getQianLongDailyRpt(fl[1], 'SH')
+
+t = time.clock()
+postImportData(conn)
+print('postImportData time: %.03f' % (time.clock()-t) )
 
 t = time.clock()
 dataCheck(conn)
@@ -904,95 +722,27 @@ print('save2DiskDb time: %.03f' % (time.clock()-t) )
 
 
 getAStockRealtime('sz002594,sh510900,sz160125')
-#'''
+
 
 t = time.clock()
 #useMemDb()
 print('usememdb time: %.03f' % (time.clock()-t) )
 
 
-def testMaskSite(prodDict8Submarket, timeout):
-    qryEndDate = "&d=%02d&e=%02d&f=%d" % ( datetime.now().month-1, datetime.now().day, datetime.now().year )
-    qryDate = "a=0&b=1&c=1989%s&g=d" % (qryEndDate)
-    for key in prodDict8Submarket.keys():
-        if key==None or key == '' or key == 'ERR':
-            continue
-        market = key[:2]
-        if key[2]<>'S' and key[2]<>'I':
-            continue
-
-        for prod in prodDict8Submarket[key]:
-            if not('yaoo' in prod.maskSite.split('.')):
-                continue
-
-            csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod.code)
-            if market=='HK' and prod.code[0]=='0':
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code[1:] + '.' + market, qryDate )
-            elif market == 'SH':
-                #market=u'ss'
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + 'ss', qryDate )
-            else:
-                url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + market, qryDate )
-            f = dataFromUrl(url, waittime=timeout)
-            if f=='':
-                continue
-            if f=='url not found':
-                continue
-            prod.maskSite.replace('yahoo.', '')
-            prod.save()
-            with open(csvfn, 'w') as fp:
-                fp.write( f )
-    return    
-
-
-def exportMaskSite():
-    maskRecLst = []
-    for key in prodDict8Submarket.keys():
-        if key==None or key == '' or key == 'ERR':
-            continue
-        '''
-        market = key[:2]
-        if key[2]<>'S' and key[2]<>'I':
-            continue
-        '''
-
-        for prod in prodDict8Submarket[key]:
-            if '.' == prod.maskSite:
-                continue
-            maskRecLst.append( prod.code + '.' + prod.submarket + ':::' + prod.maskSite + '\r\n')
-
-    csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\maskSite4Product.txt'
-    with open(csvfn, 'w') as fp:
-        fp.writelines( maskRecLst )
-    return    
-
-def recoverMaskSite():
-    csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\maskSite4Product.txt'
-    with open(csvfn, 'r') as fp:
-        rslt = fp.readlines( )
-    for line in rslt:
-        x = line.split(':::')
-        CM = x[0].split('.')
-        CM = CM[0] + '.' + CM[1][:2] # .split('.')
-        mask = x[1].strip().strip('.').split('.')
-        mask = '.' + '.'.join( set(mask) ) + '.'
-        prodMapId[ CM ].maskSite = mask
-        prodMapId[ CM ].save()
 
 def calcIdx(conn):
     import talib
     import pandas as pd
 
-    for key in prodDict8Submarket.keys():
+    for key in prodDictWithHist8Submarket.keys():
         market = key[:2]
-        for prod in prodDict8Submarket[key]:
-            if prod.dateHistBegin == None:
-                continue
+        for prod in prodDictNoHist8Submarket[key]:
             tblName = 'myapp_kdaily_' + MapSubmarket2Table( key )
-            #if prod.id<1115:
-            #    continue
+            product_id = prodMapId[ prod + '.' + market ]
+            if product_id<1115:
+                continue
             ###    ????????????  　read_table 
-            dayk = pd.read_sql_query('select * from %s where product_id=%s' % (tblName, prod.id), conn)
+            dayk = pd.read_sql_query('select * from %s where product_id=%s' % (tblName, product_id), conn)
             if len(dayk)==0:
                 continue
             dayk['o'] = dayk.o.values.astype('float64')
@@ -1016,7 +766,7 @@ def calcIdx(conn):
             rsi = talib.RSI(dayk.c.values)
             macd = talib.MACD(dayk.c.values, )
             df=pd.DataFrame(dayk.date)
-            pidL = len(cci14)*[prod.id]
+            pidL = len(cci14)*[product_id]
             df['product_id']=pd.Series(pidL)
             df['cci']=pd.Series(cci14)
             df.to_sql('myapp_productidx', conn, if_exists='append', index=False)
@@ -1053,7 +803,7 @@ def groupK():
     
     for id in prodIdMap.keys():
         p = prodIdMap[id]
-        dayk1 = pd.read_sql_query('select * from dayK1 where market="%s"' % (p.code,p.market), conn)
+        dayk1 = pd.read_sql_query('select * from dayK1 where market="%s"' % (p['code'],p['market']), conn)
         dates=map(strdate, dayk1.date.values)
 
         ts = pd.Series(dayk1.h.values, index=dates)
@@ -1065,10 +815,10 @@ def groupK():
         ts = pd.Series(dayk1.h.values, index=dates)
         tsh = ts.resample('W', how='max')
 
-testMaskSite(prodDict8Submarket, 20)
-#exportMaskSite()
-#recoverMaskSite()
+
 calcIdx(conn)
+
+
 
 
 # update myapp_product set errInfo = '1' where code in (select a.code from myapp_product_ a, myapp_product b where a.code = b.code and a.market = b.market);
@@ -1077,17 +827,3 @@ calcIdx(conn)
 # insert into myapp_product(code, market, submarket, name, type, bDataHist, errInfo) select code, market, submarket, name, type, bDataHist, errInfo from myapp_product_ where submarket = 'SHI';
 # insert into myapp_product(code, market, submarket, name, type, bDataHist, errInfo) select code, market, submarket, name, type, bDataHist, errInfo from myapp_product_ where submarket like 'HKS%';select code, market, submarket, name, type, bDataHist, errInfo from myapp_product_ where submarket like 'HKS%';
 
-
-'''
-from django.db import transaction
-transaction.set_autocommit(autocommit=False)
-#transaction.Atomic()
-i=0
-for item in prodLst:
-    p2=Product(code=item.code,market=item.market)
-    p2.save()
-    i+=1
-    if i>3:
-        break
-transaction.commit()
-'''

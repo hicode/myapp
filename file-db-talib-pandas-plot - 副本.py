@@ -1,9 +1,11 @@
+# coding=utf-8
 import sys
-sys.path.append(r"D:\s\good\MBSC-Upgrade")
+sys.path.append(r"D:\ssd-e-bak\new\ali\dor\bak sure\s\good\MBSC-Upgrade")
 
 from autoTest import VosTool
-fLst = VosTool.getFileLst( r'C:\TdxWRemote_Huatai\vipdoc\sh\lday', '', False )
-fLst = fLst + VosTool.getFileLst( r'C:\TdxWRemote_Huatai\vipdoc\sz\lday', '', False )
+fLst = VosTool.getFileLst(        r'C:\new_tdx\vipdoc\sh\lday', '', False )
+fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\sz\lday', '', False )
+fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\ds\lday', '', False )
 
 from ctypes import *
 class dayK_TDX(Structure):
@@ -23,7 +25,7 @@ cur.execute( 'create table if not exists dayK(pid, date, o, h, l, c, amt, vol, d
 cur.execute( 'create table if not exists dayK1(pid, date, o, h, l, c, amt, vol, divi)')
 conn.commit()
 
-insert into dayk1 select pid,date,o/divi,h/divi,l/divi,c/divi,amt,vol,divi from dayk
+#insert into dayk1 select pid,date,o/divi,h/divi,l/divi,c/divi,amt,vol,divi from dayk
 
 k1=dayK_TDX()
 rec = {}
@@ -49,6 +51,7 @@ for f in fLst:
 
 conn.commit()
 
+'''
   #k1.date, k1.amnt, k1.vol, k1.o, k1.h, k1.l, k1.c, k1.pre_c
   rec['product'] = fname
   rec['dt'] = k1.date
@@ -63,7 +66,7 @@ conn.commit()
       recInserted = '%s,"%s"' % ( recInserted , rec[fld] )
       cols = '%s,"%s"' % ( cols, fld )
   cur.execute( 'insert into "%s" (%s) values(%s)' % ( tblName, cols[1:], recInserted[1:] ) )
-
+'''
 f.close()
 
 
@@ -91,8 +94,8 @@ cci14 = talib.CCI( dayk000001.h.values, dayk000001.l.values, dayk000001.c.values
 #EURUSD,20010102,230200,0.9506,0.9506,0.9505,0.9505,4
 #EURUSD,20140530,185900,1.3638,1.3639,1.3638,1.3639,4
 #EURUSD,20140530,190000,1.3638,1.3638,1.3629,1.3629,4
-tips2 = pd.read_csv(r'E:\Ñ¸À×ÏÂÔØ\Ñ¹Ëõ°üÈÎÎñ×é_20140727_2050\EURUSD.txt')
-tips2 = pd.read_csv(r'E:\Ñ¸À×ÏÂÔØ\Ñ¹Ëõ°üÈÎÎñ×é_20140727_2050\EURUSD.txt', names=['pid','date','time','o','h','l','c','vol'])
+tips2 = pd.read_csv(r'E:\è¿…é›·ä¸‹è½½\åŽ‹ç¼©åŒ…ä»»åŠ¡ç»„_20140727_2050\EURUSD.txt')
+tips2 = pd.read_csv(r'E:\è¿…é›·ä¸‹è½½\åŽ‹ç¼©åŒ…ä»»åŠ¡ç»„_20140727_2050\EURUSD.txt', names=['pid','date','time','o','h','l','c','vol'])
 tips2 = pd.read_csv(r'E:\Stk_DAY_FQ_20150227\SH600600.csv', header=0, names=['pid','date','time','o','h','l','c','vol'])
 tips2 = pd.read_csv(r'E:\Stk_DAY_FQ_20150227\SH600600.csv', header=1)
 tips2 = pd.read_csv(r'E:\Stk_DAY_FQ_20150227\SH600601.csv', skiprows=1, names=['pid','date','o','h','l','c','amt','vol', 'divi'])
