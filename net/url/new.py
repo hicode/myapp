@@ -1,7 +1,7 @@
 ﻿# coding=utf-8
 
-import sqlite3
-conn = sqlite3.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
+import sqlite3 as db
+conn = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
 #from selenium import webdriver
 
 prjPath = r'E:\GitHub\myapp\net\website\django\mysite1'
@@ -378,7 +378,7 @@ def getHist(prodDict8Submarket, conn, timeout):  # http://ichart.yahoo.com/table
             try:
                 cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
                 #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-            except sqlite3.Error,e:
+            exdblite3.Error,e:
                 sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
             #print('executemany time: %.03f' % (time.clock()-t) )
@@ -465,7 +465,7 @@ def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.c
             try:
                 cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
                 #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-            except sqlite3.Error,e:
+            exdblite3.Error,e:
                 sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
     return
@@ -509,7 +509,7 @@ def getQianLongDailyRpt(fn, conn): #, market):
     try:
         cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
         #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-    except sqlite3.Error,e:
+    except db.Error,e:
         sys.stdout.write(  'except while executemany insert:' + ' Error: ' + str(e) + '\r\n' )
     conn.commit()
 
@@ -541,7 +541,7 @@ def priceAdjust(conn):
 
             try:
                 cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except sqlite3.Error,e:
+            except db.Error,e:
                 sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
     conn.commit()
 
@@ -772,7 +772,7 @@ def addPreClose(conn):
 
             try:
                 cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except sqlite3.Error,e:
+            except db.Error,e:
                 sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
     conn.commit()
 

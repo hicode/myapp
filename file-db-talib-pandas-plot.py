@@ -22,9 +22,9 @@ class dayK_THS(Structure):
       ('rsv21',c_int) , ('rsv22',c_int), ('rsv23',c_int), ('rsv24',c_int), ('rsv25',c_int), ('rsv26',c_int), ('rsv27',c_int), ('rsv28',c_int), ('rsv29',c_int), ('rsv30',c_int),
       ('rsv31',c_int) , ('rsv32',c_int), ('rsv33',c_int), ('rsv34',c_int), ('rsv35',c_int) ]
 
-import sqlite3
+import sqlite3 as db
 
-conn = sqlite3.connect( r'D:\data\dayk1.db' )
+conn = db.connect( r'D:\data\dayk1.db' )
 cur = conn.cursor()
 cur.execute( 'create table if not exists dayK(market, code, date, p, o, h, l, c, amt, vol, divi)')
 cur.execute( 'create table if not exists dayK1(market, code, date, p, o, h, l, c, amt, vol, divi)')
@@ -114,7 +114,7 @@ macd = talib.MACD(dayk000001.c.values, )
         
 
 
-connHis = sqlite3.connect( r'E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3' )
+connHis = db.connect( r'E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3' )
 def addPreClose(conn):
     df_cns = pd.read_sql_query('select * from myapp_kDaily_cns', conn)
     df_hks = pd.read_sql_query('select * from myapp_kDaily_hks', conn)
@@ -137,7 +137,7 @@ def addPreClose(conn):
 
             try:
                 cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except sqlite3.Error,e:
+            except db.Error,e:
                 sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
     conn.commit()
 
@@ -334,7 +334,7 @@ fLst = VosTool.getFileLst( r'E:\Stk_DAY_FQ_20150227', '', False )
 
 import pandas as pd
 import sqlite3
-conn = sqlite3.connect( r'D:\dayk1.db' )
+conn = db.connect( r'D:\dayk1.db' )
 
 import os
 for f in fLst:
