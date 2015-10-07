@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default2': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql', #'django.db.backends.sqlite3',
         #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'NAME': 'myapp',    #你的数据库名称
@@ -100,7 +100,7 @@ DATABASES = {
         'HOST': '', #你的数据库主机，留空默认为localhost
         'PORT': '3306', #你的数据库端口
     },
-    'default': {
+    'default2': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     },

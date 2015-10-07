@@ -1,7 +1,11 @@
 ﻿# coding=utf-8
 
-import sqlite3 as db
-conn = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
+#import sqlite3 as db
+#import mysql as db  #connector.paramstyle　
+import MySQLdb as db
+#conn = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
+conn = db.connect( host='localhost', user='root', passwd='', db='myapp', charset='utf8' )
+
 #from selenium import webdriver
 
 prjPath = r'E:\GitHub\myapp\net\website\django\mysite1'
@@ -231,7 +235,7 @@ def tickDataFromCsv_(fn,code,market, conn):
 
 def getTickData(conn):
     cur = conn.cursor()
-    dateLst = ['20150901', '20150902', '20150907', '20150908', '20150909', '20150910', '20150911', '20150914', '20150915', '20150916', '20150917', '20150918', '20150921', '20150922', '20150923', '20150924', '20150925', '20150928']
+    dateLst = ['20150901', '20150902', '20150907', '20150908', '20150909', '20150910', '20150911', '20150914', '20150915', '20150916', '20150917', '20150918', '20150921', '20150922', '20150923', '20150924', '20150925', '20150928', '20150929', '20150930']
     for id in prodIdMap.keys():
         p = prodIdMap[id]
         if p.submarket == None or p.submarket.strip == '':
@@ -287,9 +291,11 @@ def getDzhTickData():
 
 def workYesterday( d=datetime.now() ):
     weekday = d.strftime('%w') # if today is Sunday or Monday
-    if weekday == 0:
+    sunday=6  # sqlite3: 0
+    monday=0  # sqlite3: 1
+    if weekday == sunday:
         return (datetime.now()- timedelta(2)).strftime('%Y-%m-%d')  # Friday for Sunday
-    elif weekday == 1:
+    elif weekday == monday:
         return (datetime.now()- timedelta(3)).strftime('%Y-%m-%d')  # Friday for Monday
     else:
         return (datetime.now()- timedelta(1)).strftime('%Y-%m-%d')
@@ -376,9 +382,10 @@ def getHist(prodDict8Submarket, conn, timeout):  # http://ichart.yahoo.com/table
                 if prod.dateHistEnd == None:
                     newBeforeHistBegin = True
             try:
-                cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
+                #cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
+                cur.executemany(    "insert into %s(product_id, date, o, h, l, c, vol, adjC)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s)", histRec )
                 #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-            exdblite3.Error,e:
+            except db.Error,e:
                 sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
             #print('executemany time: %.03f' % (time.clock()-t) )
@@ -455,7 +462,10 @@ def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.c
                     continue
                 if fLst[0]<=dateHistEnd:
                     break 
-                histRec.append( [ prod.id ] + fLst )
+                #fLst[0] = datetime.strptime(fLst[0], '%Y-%m-%d')
+                #for i in range(len(fLst[1:])):
+                #    fLst[i+1] = float(fLst[i+1]) 
+                histRec.append( [ int(prod.id) ] + fLst )
             if histRec == []:
                 continue
             else:
@@ -463,9 +473,11 @@ def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.c
                 if prod.dateHistEnd == None:
                     newBeforeHistBegin = True
             try:
-                cur.executemany( "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName, histRec )
+                #sql = "insert into %s(product_id, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?)" % tblName
+                #sql = "insert into myapp_kdaily_cns(product_id, date, o, h, l, c, vol, adjC) values (%s,%s,%s,%s,%s,%s,%s,%s)"  # % tblName
+                cur.executemany(    "insert into %s(product_id, date, o, h, l, c, vol, adjC)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s)", histRec )
                 #cur.executemany( "insert into myapp_KDaily(code, market, date, o, h, l, c, vol, adjC) values (?,?,?,?,?,?,?,?,?)", histRec )
-            exdblite3.Error,e:
+            except db.Error,e:
                 sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
     return
@@ -686,7 +698,7 @@ def getDzhCodeLst(fn, market):
     for ln in lines[2:]:
         fLst = ln.strip().split('\t')
         #recLst.append( [p.id] + fLst[2:] )
-        p=Product(source='dzh', code=fLst[0], type='', market=market, name=fLst[1].decode('GBK'), submarket = Submarket(market, fLst[0]), masksite='.' )   #, bDataHist=False
+        p=Product(source='dzh', code=fLst[0], type='', market=market, name=fLst[1].decode('GBK'), submarket = Submarket(market, fLst[0]), maskSite='.' )   #, bDataHist=False
         recLst.append(p)
     Product.objects.bulk_create( recLst )
 
@@ -699,8 +711,8 @@ def dataCheck(conn):
     # wrong data
     cur = conn.cursor()
 
-    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_cns where adjc isnull or adjc=0 or o=0 or h=0 or l=0 or c=0)" )
-    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_hks where adjc isnull or adjc=0 or o=0 or h=0 or l=0 or c=0)" )
+    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_cns where adjc = NULL or adjc=0 or o=0 or h=0 or l=0 or c=0)" )  # for sqlite3: adjc isnull
+    cur.execute( "update myapp_product set errInfo = 'price=0' where id in (select distinct(product_id) from myapp_kdaily_hks where adjc = NULL or adjc=0 or o=0 or h=0 or l=0 or c=0)" )  # for sqlite3: adjc isnull
     conn.commit()
 
 
@@ -713,8 +725,11 @@ def redundant(conn):
 
     # weekday, week, month, year
     #'''
-    cur.execute( "update myapp_kdaily_cns set weekday = strftime('%w', date), week = strftime('%W', date), month = strftime('%m', date), year = strftime('%Y', date);" )
-    #cur.execute( 'insert into myapp_kdaily_cns_tmp select * from myapp_kdaily_cns order by product_id, date;' )
+    cur.execute( "update myapp_kdaily_cns set weekday = weekday(date), week = weekofyear(date), month = month(date), year = year(date);" )
+    # cur.execute( "update myapp_kdaily_cns set weekday = strftime('%w', date), week = strftime('%W', date), month = strftime('%m', date), year = strftime('%Y', date);" )  # sqlite3
+    cur.execute( 'insert into myapp_kdaily_cns_tmp select * from myapp_kdaily_cns order by product_id, date;' )
+    cur.execute( 'update myapp_kdaily_cns_tmp set a.p=b.c from myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b where a.product_id=b.product_id and a.id=b.id+1' )
+    cur.execute( 'update myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b set a.p=b.c where a.product_id=b.product_id and a.id=b.id+1' )
     cur.execute( "update myapp_kdaily_cns_tmp set h=h*adjC/c, l=l*adjC/c, o=o*adjC/c, amt=c, c=adjC, adjC=amt;" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
     #'''
     # cur.execute( 'ALTER TABLE myapp_kdaily_cns RENAME TO myapp_kdaily_cns2; ALTER TABLE myapp_kdaily_cns_tmp RENAME TO myapp_kdaily_cns;' )
@@ -758,6 +773,15 @@ update myapp_productposition set per2l = c / lyear;
 
 
 def addPreClose(conn):
+    import pandas as pd
+
+    df_cns = pd.read_sql_query('select * from myapp_kDaily_cns', conn)
+    df_hks = pd.read_sql_query('select * from myapp_kDaily_hks', conn)
+    df_cni = pd.read_sql_query('select * from myapp_kDaily_cni', conn)
+    df_hki = pd.read_sql_query('select * from myapp_kDaily_hki', conn)
+    dfl = [df_cns, df_cni, df_hks, df_hki]
+    df = pd.concat(dfl, ignore_index=True)
+
     cur = conn.cursor()
     for key in prodDict8Submarket:
         tblName = MapSubmarket2Table( key ).lower()
@@ -802,8 +826,8 @@ t = time.clock()
 
 l1 = getSSEProdLst()
 for item in l1:
-    p1=Product_(code=item[0], type='STOCK', market='SH', bDataHist=False, name=item[1], submarket = Submarket('SH', item[0]), masksite='.' )
-    #p1=Product_(code=item[0], type='stock', market=Market.objects.get(name='SH'), bDataHist=False, name=item[1], masksite='.' )
+    p1=Product_(code=item[0], type='STOCK', market='SH', bDataHist=False, name=item[1], submarket = Submarket('SH', item[0]), maskSite='.' )
+    #p1=Product_(code=item[0], type='stock', market=Market.objects.get(name='SH'), bDataHist=False, name=item[1], maskSite='.' )
     p1.save()
 
 #prodLst = Product_.objects.all()
@@ -814,8 +838,8 @@ l2 = getSZSEProdLst()
 #transaction.Atomic()
 for key in l2:
     for item in l2[key]:
-        p2=Product_(code=item[0],name=item[1],type=key, market='SZ', bDataHist=False, submarket = Submarket('SZ', item[0]), masksite='.')
-        #p2=Product_(code=item[0],name=item[1],type=key, market=Market.objects.get(name='SZ'), bDataHist=False, masksite='.')
+        p2=Product_(code=item[0],name=item[1],type=key, market='SZ', bDataHist=False, submarket = Submarket('SZ', item[0]), maskSite='.')
+        #p2=Product_(code=item[0],name=item[1],type=key, market=Market.objects.get(name='SZ'), bDataHist=False, maskSite='.')
         p2.save()
 #transaction.commit()
 print('getSSEProdLst|getSZSEProdLst time: %.03f' % (time.clock()-t) )
@@ -1044,11 +1068,11 @@ def trendSense(df):
 
 
 
-def groupK():
+def groupK_():
     import pandas as pd
     from datetime import datetime
     
-    def intdate(int):
+    def strdate(int):   # ??intdate
         return datetime.strptime(str(int), '%Y%m%d')
     
     for id in prodIdMap.keys():
@@ -1064,6 +1088,8 @@ def groupK():
     
         ts = pd.Series(dayk1.h.values, index=dates)
         tsh = ts.resample('W', how='max')
+
+
 
 testMaskSite(prodDict8Submarket, 20)
 #exportMaskSite()

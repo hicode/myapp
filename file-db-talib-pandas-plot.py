@@ -1,15 +1,15 @@
 # coding=utf-8
 import sys
 import time
-from codetools.util.cbook import unique
+#from codetools.util.cbook import unique
 from pandas.core.common import notnull
 from django.db.models.lookups import IsNull
 sys.path.append(r"D:\ssd-e-bak\new\ali\dor\bak sure\s\good\MBSC-Upgrade")
 
-from autoTest import VosTool
-fLst = VosTool.getFileLst(        r'C:\new_tdx\vipdoc\sh\lday', '', False )
-fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\sz\lday', '', False )
-#fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\ds\lday', '', False )
+#from autoTest import VosTool
+#fLst = VosTool.getFileLst(        r'C:\new_tdx\vipdoc\sh\lday', '', False )
+#fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\sz\lday', '', False )
+##fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\ds\lday', '', False )
 
 from ctypes import *
 class dayK_TDX(Structure):
@@ -87,7 +87,7 @@ import talib
 import pandas as pd
 from datetime import datetime
 
-
+'''
 url = 'https://raw.github.com/pydata/pandas/master/pandas/tests/data/tips.csv'
 tips1 = pd.read_csv(url)
 tips = pd.read_csv(r'C:\Anaconda3\Lib\site-packages\pandas\tests\data\tips.csv')
@@ -110,49 +110,22 @@ cci14 = talib.CCI( dayk000001.h.values, dayk000001.l.values, dayk000001.c.values
 bol20 = talib.BBANDS(dayk000001.c.values, timeperiod=20)
 rsi = talib.RSI(dayk000001.c.values)
 macd = talib.MACD(dayk000001.c.values, )
-
+'''
         
 
 
-connHis = db.connect( r'E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3' )
-def addPreClose(conn):
-    df_cns = pd.read_sql_query('select * from myapp_kDaily_cns', conn)
-    df_hks = pd.read_sql_query('select * from myapp_kDaily_hks', conn)
-    df_cni = pd.read_sql_query('select * from myapp_kDaily_cni', conn)
-    df_hki = pd.read_sql_query('select * from myapp_kDaily_hki', conn)
-    dfl = [df_cns, df_cni, df_hks, df_hki]
-    df = pd.concat(dfl, ignore_index=True)
 
-    cur = conn.cursor()
-    for key in prodDict8Submarket:
-        tblName = MapSubmarket2Table( key ).lower()
-        if tblName <> 'cns' and tblName <> 'hks' and tblName <> 'cni' and tblName <> 'hki':
-            continue 
-        for prod in prodDict8Submarket[key]:
-            if prod.dateHistEnd == None:
-                continue
-            elif prod.ratioFrwdBegin == None:
-                sys.stdout.write(  'dateHistEnd is not Null but ratioFrwdBegin isnull:' + prod.code+'.'+prod.submarket + '\r\n' )
-                continue
 
-            try:
-                cur.execute( "update myapp_kdaily_%s set ratioBack=%s/ratioFrwd where product_id = %s" % (tblName, prod.ratioFrwdBegin, prod.id) )
-            except db.Error,e:
-                sys.stdout.write(  'except while execute update:' + prod.code+'.'+prod.submarket + ' Error: ' + str(e) + '\r\n' )
-    conn.commit()
 
-def moreK(conn, fld):
-    dfD = pd.read_sql_query('select * from myapp_kDaily', conn)
-    grouped = dfD.groupby([dfD['product_id'], dfD['year'], dfD[fld]])
-    h=grouped['h'].max()
-    l=grouped['l'].min()
-    o=grouped['o'].first()
-    c=grouped['c'].last()
+def db_Csv():
+    pass
 
-def groupK(conn, fld):
+def groupK(fn, fld):  # conn, 
     t = time.clock()
-    #dfD = pd.read_sql_query('select * from myapp_kDaily where product_id = 8838 ', conn)
-    dfD = pd.read_sql_query('select * from myapp_kDaily', conn)
+    #dfD = pd.read_sql_query('select * from myapp_kDaily_cns_tmp where product_id = 8838 ', conn)
+    #dfD = pd.read_sql_query('select product_id,date,p,o,h,l,c,vol,year,month,week from myapp_kDaily_cns_tmp', conn)
+    dfD = pd.read_csv( fn )
+    #dfD = pd.read_csv( r'C:\Users\Administrator\Desktop\myapp_kdaily_hks_tmp.csv' )
     print('read_sql_query time: %.03f' % (time.clock()-t) )
     
     t = time.clock()
@@ -160,7 +133,9 @@ def groupK(conn, fld):
     h=grouped['h'].max()
     l=grouped['l'].min()
     o=grouped['o'].first()
+    p=grouped['p'].first()
     c=grouped['c'].last()
+    vol=grouped['vol'].sum()
     startD=grouped['date'].min()
     ih=grouped['h'].idxmax()
     hD=dfD.iloc[ih]['date']
@@ -171,22 +146,31 @@ def groupK(conn, fld):
     lD.name='lDate'
     lD.index=o.index
     #dfM = pd.merge( pd.DataFrame(startD), pd.DataFrame(o), on=['product_id', 'year', fld] )
-    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD) ] )
+    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(p), pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD), pd.DataFrame(vol) ] )
     print('group month time: %.03f' % (time.clock()-t) )
     return rsltDf
 
+
+
+t = time.clock()
+dfW = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'week') #connHis, 
+print('groupK time: %.03f' % (time.clock()-t) )
+t = time.clock()
+#dfW.to_sql('myapp_kweek', connHis, if_exists='append')
+dfW.to_csv('myapp_kweek.csv', encoding='utf-8', index=True)
+print('to_sql time: %.03f' % (time.clock()-t) )
+
+dfM = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'month')  #connHis, 
+t = time.clock()
+#dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
+dfM.to_csv('myapp_kmonth.csv', encoding='utf-8', index=True)
+print('to_sql time: %.03f' % (time.clock()-t) )
+
+
 for p in pL['product_id']:
+    pass
 
-dfW = groupK(connHis, 'week')
-t = time.clock()
-dfW.to_sql('myapp_kWeek', connHis, if_exists='append')
-print('to_sql time: %.03f' % (time.clock()-t) )
-
-dfM = groupK(connHis, 'month')
-t = time.clock()
-dfM.to_sql('myapp_kMonth', connHis, if_exists='append')
-print('to_sql time: %.03f' % (time.clock()-t) )
-
+'''
 #def getTrend(dfM):
 trendDict = {}
 for prod in dfM['product_id']:
@@ -236,6 +220,7 @@ for prod in dfM['product_id']:
                 if k.c < k.p:
                     newTr = newTrend(newTr, k0) # newTr is the same with sureTr before call return
                     trRec.append( newTr )
+'''
 
 def newTrend(curTrend, K):
     newTr={}
@@ -263,7 +248,7 @@ def initTrend(k0):
           Up=False
     firstTr['up'] = Up
     return trRec.append( firstTr )
-
+'''
 create view tmp as select product_id, count(*) num from myapp_kdaily_cns group by product_id
 delete from myapp_kdaily_cns where product_id in (select product_id from tmp where num<5)
 create view tmp as select product_id, count(*) num from myapp_kdaily_cns group by product_id
@@ -284,21 +269,13 @@ ALTER TABLE myapp_kdaily ADD COLUMN pDate date
 insert into myapp_kdate(product_id,date) select product_id, date from myapp_kdaily order by product_id, date
 CREATE INDEX "myapp_kdate_idx" ON "myapp_kdate" ("product_id", "date");
 CREATE INDEX "myapp_kdate_idx1" ON "myapp_kdate" ("product_id", "id");
+CREATE INDEX "myapp_kdaily_cns_tmp_idx111" ON "myapp_kdaily_cns_tmp" ("product_id", "id");
 update myapp_seqdate a set a.pdate=b.date from myapp_seqdate a, myapp_seqdate b where a.product_id=b.product_id and a.id=b.id+1
 insert into myapp_seqdate(product_id, date, pdate) select a.product_id, a.date, b.date from myapp_kdate a, myapp_kdate b where a.product_id=b.product_id and a.id=b.id+1
 create view kdaily as select * from myapp_kdaily_cns union select * from myapp_kdaily_hks  
 EXPLAIN QUERY PLAN SELECT * FROM myapp_kdaily_cns WHERE year>2010
+'''
 
-
-
-def intdate(int):
-    return datetime.strptime(str(int), '%Y%m%d')
-
-
-dayk1 = pd.read_sql_query('select * from dayK1 where market="600109"', conn)
-dates=map(strdate, dayk1.date.values)
-ts = pd.Series(dayk1.h.values, index=dates)
-ts1 = ts.resample('W', how='max')
 
 
 
@@ -522,3 +499,70 @@ x = ['ACOS',
  'func',
  'get_function_groups',
  'get_functions']
+
+
+
+# os.xx ( command =" mysqldump myapp_product ") 
+#cur.execute(statement)
+
+#from sqlalchemy import create_engine
+#connHis = create_engine('mysql+mysqldb://root:@localhost/myapp')
+
+
+#import mysql as db  #connector.paramstyle　
+#connHis = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
+import MySQLdb as db
+connHis = db.connect( host='localhost', user='root', passwd='', db='myapp', charset='utf8' )
+cur = connHis.cursor()
+#statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
+#statement =" load data infile 'myapp_kweek.csv' into table myapp_kweek fields terminated by ',' (product_id, @year, @week, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') " #fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
+statement =" load data infile 'myapp_kmonth.csv' into table myapp_kmonth fields terminated by ',' (product_id, @year, @month, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') "
+cur.execute( statement )
+
+
+
+import mysql.connector
+cnx = mysql.connector.connect(user='root', database='myapp')
+curA = cnx.cursor(buffered=True)
+cnx1 = mysql.connector.connection.MySQLConnection(user='root', database='myapp')
+
+
+statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+cnx1.cmd_query( statement )
+
+'''
+select * from myapp_product into outfile 'd:\test.csv' fields terminated by ',' optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+load data infile 'd:\test.csv' into table myapp_product fields terminated by ','  optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';   
+'''
+
+# Query to get employees who joined in a period defined by two dates
+query = (
+  "SELECT s.emp_no, salary, from_date, to_date FROM employees AS e "
+  "LEFT JOIN salaries AS s USING (emp_no) "
+  "WHERE to_date = DATE('9999-01-01')"
+  "AND e.hire_date BETWEEN DATE(%s) AND DATE(%s)")
+
+# UPDATE and INSERT statements for the old and new salary
+update_old_salary = (
+  "UPDATE salaries SET to_date = %s "
+  "WHERE emp_no = %s AND from_date = %s")
+insert_new_salary = (
+  "INSERT INTO salaries (emp_no, from_date, to_date, salary) "
+  "VALUES (%s, %s, %s, %s)")
+
+# Select the employees getting a raise
+curA.execute(query, (date(2000, 1, 1), date(2000, 12, 31)))
+
+# Iterate through the result of curA
+for (emp_no, salary, from_date, to_date) in curA:
+
+  # Update the old and insert the new salary
+  new_salary = int(round(salary * Decimal('1.15')))
+  curB.execute(update_old_salary, (tomorrow, emp_no, from_date))
+  curB.execute(insert_new_salary,
+               (emp_no, tomorrow, date(9999, 1, 1,), new_salary))
+
+  # Commit the changes
+  cnx.commit()
+
+cnx.close()

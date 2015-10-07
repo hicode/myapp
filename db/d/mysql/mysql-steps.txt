@@ -1,6 +1,8 @@
+config.ini
+
 
 打开新cmd窗口，启动管理节点
-ndb_mgmd.exe --config-file=e:/cluster/config.ini --configdir=e:/cluster
+ndb_mgmd.exe --config-file=e:\cluster\config.ini --configdir=e:\cluster
 
 
 注：我们也可以将其做成服务，在命令行中输入：       ndb_mgmd --install=ndb_mgmd -f e:\cluster\config.ini --configdir=e:\cluster
@@ -57,5 +59,21 @@ net start mysql
 ndbd.exe
  
 打开新cmd窗口
-mysqld.exe --default-file="C:/ProgramFiles/MySQL/MySQL Cluster 7.4/my.ini"
+mysqld.exe --default-file="C:\ProgramFiles\MySQL\MySQL Cluster 7.4\my.ini"
 执行完成后启动mysql:
+
+
+
+
+
+useful commands::
+
+mysqld --verbose --help|more
+
+mysql -u root
+
+
+Failed to parse parameters for log handler: 'FILE:filename=e:/cluster/data\ndb_1_cluster.log,maxsize=1000000,maxfiles=6', error: 17 '(null)'
+
+ndb_mgmd.exe --initial  --config-file=e:\cluster\config.ini --configdir=e:\cluster --verbose --help
+
