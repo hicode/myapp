@@ -28,6 +28,16 @@ from myapp.rules import Submarket, MapSubmarket2Table # net.website.django.mysit
 
 from myapp.models import * #Product_, Product, KDaily, KMin, WatchList, Market, StockInfo, TradeRealTime
 
+
+def execScript4Mysql(conn, script):
+    sqlLst = script.split(';')
+    cur = conn.cursor()
+    for sql in sqlLst:
+        if sql.strip()=='':
+            continue
+        cur.execute(sql)
+    conn.commit()
+
 def export2Txt(conn):
     fn = 'd:\product.txt'
     fp = open(fn, 'w')
@@ -808,15 +818,6 @@ def redundant(conn):
 
     #cur.execute("insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month<6 group by product_id;")
     #conn.commit()
-
-def execScript4Mysql(conn, script):
-    sqlLst = script.split(';')
-    cur = conn.cursor()
-    for sql in sqlLst:
-        if sql.strip()=='':
-            continue
-        cur.execute(sql)
-    conn.commit()
 
 def fromRedundant():
     import mysql.connector
