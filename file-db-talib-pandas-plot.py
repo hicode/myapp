@@ -12,19 +12,140 @@ sys.path.append(r"D:\ssd-e-bak\new\ali\dor\bak sure\s\good\MBSC-Upgrade")
 ##fLst += VosTool.getFileLst( r'C:\new_tdx\vipdoc\ds\lday', '', False )
 
 from ctypes import *
-class dayK_TDX(Structure):
-     _fields_ = [ ('date',c_int), ('o',c_int), ('h',c_int), ('l',c_int), ('c',c_int), ('amnt',c_float), ('vol',c_int), ('pre_c',c_int) ]
+class dayK_TDX(Structure):  # ?? c_int
+     _fields_ = [ ('date',c_uint32), ('o',c_uint32), ('h',c_uint32), ('l',c_uint32), ('c',c_uint32), ('amnt',c_float), ('vol',c_uint32), ('pre_c',c_uint32) ]
+
+
+
+
+class dayK_THS_rec(Structure):
+    _pack_ = 1
+    _fields_ = [ ('date',c_uint32), ('o',c_uint32), ('h',c_uint32), ('l',c_uint32), ('c',c_uint32), ('amnt',c_uint32), ('vol',c_uint32) ] #,
+    '''  
+      ('rsv1',c_uint32) , ('rsv2',c_uint32), ('rsv3',c_uint32), ('rsv4',c_uint32), ('rsv5',c_uint32), ('rsv6',c_uint32), ('rsv7',c_uint32), ('rsv8',c_uint32), ('rsv9',c_uint32), ('rsv10',c_uint32),
+      ('rsv11',c_uint32) , ('rsv12',c_uint32), ('rsv13',c_uint32), ('rsv14',c_uint32), ('rsv15',c_uint32), ('rsv16',c_uint32), ('rsv17',c_uint32), ('rsv18',c_uint32), ('rsv19',c_uint32), ('rsv20',c_uint32),
+      ('rsv21',c_uint32) , ('rsv22',c_uint32), ('rsv23',c_uint32), ('rsv24',c_uint32), ('rsv25',c_uint32), ('rsv26',c_uint32), ('rsv27',c_uint32), ('rsv28',c_uint32), ('rsv29',c_uint32), ('rsv30',c_uint32),
+      ('rsv31',c_uint32) , ('rsv32',c_uint32), ('rsv33',c_uint32), ('rsv34',c_uint32), ('rsv35',c_uint) ]
+    '''
+
+class compIdx_THS(Structure):
+    _pack_ = 1
+    _fields_ = [ ('len',c_uint16), ('idxNum',c_uint16) ]
+
+class compIdx_THS_rec(Structure):
+    _pack_ = 1
+    _fields_ = [ ('type',c_byte), ('code',c_byte*9), ('freeRecNum', c_uint16), ('addr', c_uint32), ('recNum', c_uint16) ]
+
+class dividend_THS_rec(Structure):
+    _pack_ = 1
+    _fields_ = [ ('date',c_uint32), ('w1',c_int32), ('exdividendDate',c_int32), ('cash',c_uint32), ('split',c_uint32), 
+                ('bonus',c_uint32), ('dispatch',c_uint32), ('price',c_uint32), ('regDate',c_uint32), ('listingDate',c_uint32), ('desc',c_uint32) ]
+
+class tHS_FHeader(Structure):  # ?? BigEndianStructure
+    _pack_ = 1
+    _fields_ = [ ('sign', c_uint32), ('w1', c_uint16), ('recCount', c_uint32), ('headerLen', c_uint16), ('recLen', c_uint16), ('fldCount', c_uint16) ]   # header.RecordCount = reader.ReadUInt32() & 0xffffff;
+    # ('fldCount', c_uint32)
 
 class dayK_THS(Structure):
-     _fields_ = [ ('date',c_int), ('o',c_int), ('h',c_int), ('l',c_int), ('c',c_int), ('amnt',c_float), ('vol',c_int),
-      ('rsv1',c_int) , ('rsv2',c_int), ('rsv3',c_int), ('rsv4',c_int), ('rsv5',c_int), ('rsv6',c_int), ('rsv7',c_int), ('rsv8',c_int), ('rsv9',c_int), ('rsv10',c_int),
-      ('rsv11',c_int) , ('rsv12',c_int), ('rsv13',c_int), ('rsv14',c_int), ('rsv15',c_int), ('rsv16',c_int), ('rsv17',c_int), ('rsv18',c_int), ('rsv19',c_int), ('rsv20',c_int),
-      ('rsv21',c_int) , ('rsv22',c_int), ('rsv23',c_int), ('rsv24',c_int), ('rsv25',c_int), ('rsv26',c_int), ('rsv27',c_int), ('rsv28',c_int), ('rsv29',c_int), ('rsv30',c_int),
-      ('rsv31',c_int) , ('rsv32',c_int), ('rsv33',c_int), ('rsv34',c_int), ('rsv35',c_int) ]
+    header = tHS_FHeader()
+    # fldList
+
+def getValTHS(val):
+    num = val & 0xfffffff  # 后28bit
+    num2 = val >> 0x1c     # 前4bit
+    if num2 & 7 == 0:      # 2/3/4bit为000
+        return num
+    num3 = pow(10.0, (num2&7))
+    if (num2&8)<>0:        # 1bit is 1
+        return num/num3
+    return num * num3
+
+def diviFromThs(fn, pid):
+    idxDivi = compIdx_THS_rec()
+    recDivi = dividend_THS_rec()
+    try:
+        recDiviLst = []
+        with open( fn, 'rb' ) as fp:  # HTTP Error 404: Not Found
+            head = tHS_FHeader()
+            fp.readinto( head )   # sizeof(head) is 20 ??set pack=1  # x = fp.read(16)
+            head.recCount = head.recCount & 0xffffff
+
+            #idxBlockAddr = sizeof(head) + head.fldCount * 4 + head.fldCount * 2
+            #fp.read( idxBlockAddr-sizeof(head) ) # read columnList
+            fp.read( head.fldCount * 4 + head.fldCount * 2 )
+            headIdxBlock = compIdx_THS()
+            fp.readinto( headIdxBlock )
+            idxDiviLst = []
+            for i in range(headIdxBlock.idxNum):  #while fp.readinto(k1):
+                fp.readinto( idxDivi )
+                idxDiviLst.append( idxDivi )
+            
+            for idx in idxDiviLst:  #while fp.readinto(k1):
+                validRecNum = idx.recNum-idx.freeRecNum-1
+                for i in idx.recNum:
+                    if i > validRecNum:
+                        break  #continue
+                    fp.seek(idx.addr)
+                    fp.readinto( recDivi )
+                    recDiviLst.append( recDivi ) #recDiviLst.append( [pid, k1.date, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    return recDiviLst
+
+def hisFromThs(fn, pid):
+    #fn = r'C:\htzqzyb2\history\shase\day\600000.day'
+    k1=dayK_THS_rec()
+    try:
+        recLst = []
+        with open( fn, 'rb' ) as fp:  # HTTP Error 404: Not Found
+            head = tHS_FHeader()
+            fp.readinto( head )   # sizeof(head) is 20 ??set pack=1  # x = fp.read(16)
+            fp.read( head.headerLen-sizeof(head) ) # read columnList
+            head.recCount = head.recCount & 0xffffff
+            for i in range(head.recCount):  #while fp.readinto(k1):
+                fp.readinto(k1)
+                fp.read( head.recLen-sizeof(k1) ) # unused
+                recLst.append( [pid, k1.date, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    return recLst
+
+
+diviFromThs(u'D:\\data\\hqzqzyb2\\finance\\权息资料.财经', 1)
+
+def getTHSData(conn):
+    cur = conn.cursor()
+    import scandir
+
+    dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
+    fileDict = {}
+    for d in dirLst:
+        #for dir in 
+        dir = 'C:\\htzqzyb2\\history\\%s\\day\\'%d[0]
+        market = d[1]
+        for path, subdirs, files in scandir.walk(dir):
+            for fn in files:
+                code=fn.split('.')[0]
+                prodId=code + '.' + market
+                #if prodId not in prodMapId.keys():
+                #    continue
+                #fileDict[prodId] = (dir + fn, code, market)
+                recLst = hisFromThs(dir + fn, 1) #prodMapId[prodId].id)
+                submarket = Submarket(market, code)
+                tblName = 'myapp_kdaily_' + MapSubmarket2Table( submarket )
+                cur.executemany( "insert into %s(product_id, date, o, h, l, c, amt, vol, adjC)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
+                conn.commit()
+
 
 import sqlite3 as db
 
 conn = db.connect( r'D:\data\dayk1.db' )
+
+getTHSData(conn)
+
+
 cur = conn.cursor()
 cur.execute( 'create table if not exists dayK(market, code, date, p, o, h, l, c, amt, vol, divi)')
 cur.execute( 'create table if not exists dayK1(market, code, date, p, o, h, l, c, amt, vol, divi)')
@@ -116,58 +237,83 @@ macd = talib.MACD(dayk000001.c.values, )
 
 
 
+# os.xx ( command =" mysqldump myapp_product ") 
+#cur.execute(statement)
+
+#from sqlalchemy import create_engine
+#connHis = create_engine('mysql+mysqldb://root:@localhost/myapp')
+
+
+#import mysql as db  #connector.paramstyle　
+#connHis = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
+import MySQLdb as db
+connHis = db.connect( host='localhost', user='root', passwd='', db='myapp', charset='utf8' )
+cur = connHis.cursor()
+#statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
+statement =" load data infile 'myapp_cns_kmonth.csv' into table myapp_kmonth fields terminated by ',' (product_id, @year, @month, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') "
+cur.execute( statement )
+statement =" load data infile 'myapp_cns_kweek.csv' into table myapp_kweek fields terminated by ',' (product_id, @year, @week, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') " #fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
+cur.execute( statement )
+connHis.commit()
+
+import mysql.connector
+cnx = mysql.connector.connect(user='root', database='myapp')
+curA = cnx.cursor(buffered=True)
+cnx1 = mysql.connector.connection.MySQLConnection(user='root', database='myapp')
+
+
+statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+cnx1.cmd_query( statement )
+
+
+
+state2 = "delete from myapp_productidx; delete from myapp_periodHL_;"
+cnx1.cmd_query_iter( state2 )  #cur.execute(state2 , multi=True)
+
+
+'''
+select * from myapp_product into outfile 'd:\test.csv' fields terminated by ',' optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+load data infile 'd:\test.csv' into table myapp_product fields terminated by ','  optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';   
+'''
+
+# Query to get employees who joined in a period defined by two dates
+query = (
+  "SELECT s.emp_no, salary, from_date, to_date FROM employees AS e "
+  "LEFT JOIN salaries AS s USING (emp_no) "
+  "WHERE to_date = DATE('9999-01-01')"
+  "AND e.hire_date BETWEEN DATE(%s) AND DATE(%s)")
+
+# UPDATE and INSERT statements for the old and new salary
+update_old_salary = (
+  "UPDATE salaries SET to_date = %s "
+  "WHERE emp_no = %s AND from_date = %s")
+insert_new_salary = (
+  "INSERT INTO salaries (emp_no, from_date, to_date, salary) "
+  "VALUES (%s, %s, %s, %s)")
+
+# Select the employees getting a raise
+curA.execute(query, (date(2000, 1, 1), date(2000, 12, 31)))
+
+# Iterate through the result of curA
+for (emp_no, salary, from_date, to_date) in curA:
+
+  # Update the old and insert the new salary
+  new_salary = int(round(salary * Decimal('1.15')))
+  curB.execute(update_old_salary, (tomorrow, emp_no, from_date))
+  curB.execute(insert_new_salary,
+               (emp_no, tomorrow, date(9999, 1, 1,), new_salary))
+
+  # Commit the changes
+  cnx.commit()
+
+cnx.close()
+
+
+
+
+
 
 def db_Csv():
-    pass
-
-def groupK(fn, fld):  # conn, 
-    t = time.clock()
-    #dfD = pd.read_sql_query('select * from myapp_kDaily_cns_tmp where product_id = 8838 ', conn)
-    #dfD = pd.read_sql_query('select product_id,date,p,o,h,l,c,vol,year,month,week from myapp_kDaily_cns_tmp', conn)
-    dfD = pd.read_csv( fn )
-    #dfD = pd.read_csv( r'C:\Users\Administrator\Desktop\myapp_kdaily_hks_tmp.csv' )
-    print('read_sql_query time: %.03f' % (time.clock()-t) )
-    
-    t = time.clock()
-    grouped = dfD.groupby([dfD['product_id'], dfD['year'], dfD[fld]])
-    h=grouped['h'].max()
-    l=grouped['l'].min()
-    o=grouped['o'].first()
-    p=grouped['p'].first()
-    c=grouped['c'].last()
-    vol=grouped['vol'].sum()
-    startD=grouped['date'].min()
-    ih=grouped['h'].idxmax()
-    hD=dfD.iloc[ih]['date']
-    hD.name='hDate'
-    hD.index=o.index
-    il=grouped['l'].idxmin()
-    lD=dfD.iloc[il]['date']
-    lD.name='lDate'
-    lD.index=o.index
-    #dfM = pd.merge( pd.DataFrame(startD), pd.DataFrame(o), on=['product_id', 'year', fld] )
-    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(p), pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD), pd.DataFrame(vol) ] )
-    print('group month time: %.03f' % (time.clock()-t) )
-    return rsltDf
-
-
-
-t = time.clock()
-dfW = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'week') #connHis, 
-print('groupK time: %.03f' % (time.clock()-t) )
-t = time.clock()
-#dfW.to_sql('myapp_kweek', connHis, if_exists='append')
-dfW.to_csv('myapp_kweek.csv', encoding='utf-8', index=True)
-print('to_sql time: %.03f' % (time.clock()-t) )
-
-dfM = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'month')  #connHis, 
-t = time.clock()
-#dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
-dfM.to_csv('myapp_kmonth.csv', encoding='utf-8', index=True)
-print('to_sql time: %.03f' % (time.clock()-t) )
-
-
-for p in pL['product_id']:
     pass
 
 '''
@@ -501,68 +647,3 @@ x = ['ACOS',
  'get_functions']
 
 
-
-# os.xx ( command =" mysqldump myapp_product ") 
-#cur.execute(statement)
-
-#from sqlalchemy import create_engine
-#connHis = create_engine('mysql+mysqldb://root:@localhost/myapp')
-
-
-#import mysql as db  #connector.paramstyle　
-#connHis = db.connect(r"E:\GitHub\myapp\net\website\django\mysite1\db.sqlite3")
-import MySQLdb as db
-connHis = db.connect( host='localhost', user='root', passwd='', db='myapp', charset='utf8' )
-cur = connHis.cursor()
-#statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
-#statement =" load data infile 'myapp_kweek.csv' into table myapp_kweek fields terminated by ',' (product_id, @year, @week, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') " #fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';
-statement =" load data infile 'myapp_kmonth.csv' into table myapp_kmonth fields terminated by ',' (product_id, @year, @month, @date,p,o,h,l,c,@hdate,@ldate,vol) set date=STR_TO_DATE(@date,'%Y%m%d'), hdate=STR_TO_DATE(@hdate,'%Y%m%d'), ldate=STR_TO_DATE(@ldate,'%Y%m%d') "
-cur.execute( statement )
-
-
-
-import mysql.connector
-cnx = mysql.connector.connect(user='root', database='myapp')
-curA = cnx.cursor(buffered=True)
-cnx1 = mysql.connector.connection.MySQLConnection(user='root', database='myapp')
-
-
-statement =" select * from myapp_product into outfile 'test.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
-cnx1.cmd_query( statement )
-
-'''
-select * from myapp_product into outfile 'd:\test.csv' fields terminated by ',' optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
-load data infile 'd:\test.csv' into table myapp_product fields terminated by ','  optionally enclosed by '"' escaped by '"' lines terminated by '\r\n';   
-'''
-
-# Query to get employees who joined in a period defined by two dates
-query = (
-  "SELECT s.emp_no, salary, from_date, to_date FROM employees AS e "
-  "LEFT JOIN salaries AS s USING (emp_no) "
-  "WHERE to_date = DATE('9999-01-01')"
-  "AND e.hire_date BETWEEN DATE(%s) AND DATE(%s)")
-
-# UPDATE and INSERT statements for the old and new salary
-update_old_salary = (
-  "UPDATE salaries SET to_date = %s "
-  "WHERE emp_no = %s AND from_date = %s")
-insert_new_salary = (
-  "INSERT INTO salaries (emp_no, from_date, to_date, salary) "
-  "VALUES (%s, %s, %s, %s)")
-
-# Select the employees getting a raise
-curA.execute(query, (date(2000, 1, 1), date(2000, 12, 31)))
-
-# Iterate through the result of curA
-for (emp_no, salary, from_date, to_date) in curA:
-
-  # Update the old and insert the new salary
-  new_salary = int(round(salary * Decimal('1.15')))
-  curB.execute(update_old_salary, (tomorrow, emp_no, from_date))
-  curB.execute(insert_new_salary,
-               (emp_no, tomorrow, date(9999, 1, 1,), new_salary))
-
-  # Commit the changes
-  cnx.commit()
-
-cnx.close()

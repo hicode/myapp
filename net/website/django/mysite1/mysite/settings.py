@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default1': {
         'ENGINE': 'django.db.backends.mysql', #'django.db.backends.sqlite3',
         #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'NAME': 'myapp',    #你的数据库名称
@@ -103,6 +103,10 @@ DATABASES = {
     'default2': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(r'D:\data\slowdb', 'db.sqlite3'),
     },
     'default1': { #mem
         'ENGINE': 'django.db.backends.sqlite3',

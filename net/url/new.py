@@ -1,4 +1,6 @@
-﻿# coding=utf-8
+# coding=utf-8
+
+import pandas as pd
 
 #import sqlite3 as db
 #import mysql as db  #connector.paramstyle　
@@ -630,15 +632,34 @@ def prepareTrading():
     return submarketLst,           prodIdMap, prodMapId,           prodDict8Submarket #, prodDictWithHist8Submarket,prodDictNoHist8Submarket
 
 
-'''
-def watch():
-    for prod in SSEProdLst:
-        getAStockRealtime()
+def getWatchLst(fn):
+    try:
+        with open( fn ) as fp:  # HTTP Error 404: Not Found
+            rslt = fp.readlines()
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    for ln in rslt[1:]:
+        flds = ln.split('\t')
+        market = flds[0][:2]
+        code = flds[0][2:]
+        submarket = Submarket(market, code)
+        if submarket=='' or submarket[2] <> 'S':
+            continue
+        p = Product.objects.get( code=code, market=market )
+        if p==None:
+            sys.stdout.write(  'product not found:' + code + '.' + market + '\r\n' )
+            continue
+        pWatch = WatchList(product=p, watchReason='')
+        pWatch.save()
+    #for prod in SSEProdLst:
+    #    getAStockRealtime()
 
 # watchLst: prodCode market
 # realTimeTrading: prodCode price
 
 
+'''
 import threading 
 def sayhello(): 
         print "hello world" 
@@ -726,55 +747,111 @@ def redundant(conn):
     # weekday, week, month, year
     #'''
     cur.execute( "update myapp_kdaily_cns set weekday = weekday(date), week = weekofyear(date), month = month(date), year = year(date);" )
+    cur.execute( "update myapp_kdaily_hks set weekday = weekday(date), week = weekofyear(date), month = month(date), year = year(date);" )
     # cur.execute( "update myapp_kdaily_cns set weekday = strftime('%w', date), week = strftime('%W', date), month = strftime('%m', date), year = strftime('%Y', date);" )  # sqlite3
-    cur.execute( 'insert into myapp_kdaily_cns_tmp select * from myapp_kdaily_cns order by product_id, date;' )
-    cur.execute( 'update myapp_kdaily_cns_tmp set a.p=b.c from myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b where a.product_id=b.product_id and a.id=b.id+1' )
-    cur.execute( 'update myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b set a.p=b.c where a.product_id=b.product_id and a.id=b.id+1' )
+    cur.execute( 'insert into myapp_kdaily_cns_tmp select * from myapp_kdaily_cns' ) # order by product_id, date asc;' ) #
+    cur.execute( 'insert into myapp_kdaily_hks_tmp select * from myapp_kdaily_hks' ) # order by product_id, date desc;' )
+
+    #cur.execute('insert into myapp_kdaily select * from  myapp_kdaily_cns_tmp where adjC=0 or vol=0 or c=0;')
+    #cur.execute('insert into myapp_kdaily select * from  myapp_kdaily_hks_tmp where adjC=0 or vol=0 or c=0;')
+    cur.execute( 'delete from myapp_kdaily_cns_tmp where vol=0 or c=0;' ) #  and o=h and o=l and o=c;' ) #   record that vol=0 is invalid holiday data; record that c=0 is error data
+    #cur.execute( 'delete from myapp_kdaily_cni_tmp where adjC=0 or vol=0 or c=0;' ) #  and o=h and o=l and o=c;' )
+    cur.execute( 'delete from myapp_kdaily_hks_tmp where vol=0 or c=0;' ) #  and o=h and o=l and o=c;' )  # 
+    #cur.execute( 'delete from myapp_kdaily_hki_tmp where adjC=0 or vol=0 or c=0;' ) #  and o=h and o=l and o=c;' )
+    conn.commit()
+
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_hks_tmp DROP id;' )
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_hks_tmp ADD id int( 11 ) NOT NULL  FIRST;' )
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_hks_tmp MODIFY COLUMN  id int( 11 ) NOT NULL  AUTO_INCREMENT,ADD PRIMARY  KEY(id);' )
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_cns_tmp DROP id;' )
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_cns_tmp ADD id int( 11 ) NOT NULL  FIRST;' )
+    cur.execute( 'ALTER  TABLE  myapp_kdaily_cns_tmp MODIFY COLUMN  id int( 11 ) NOT NULL  AUTO_INCREMENT,ADD PRIMARY  KEY(id);' )
+    conn.commit()
+
+    #cur.execute( 'update myapp_kdaily_cns_tmp set a.p=b.c from myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b where a.product_id=b.product_id and a.id=b.id+1' )
     cur.execute( "update myapp_kdaily_cns_tmp set h=h*adjC/c, l=l*adjC/c, o=o*adjC/c, amt=c, c=adjC, adjC=amt;" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
+    cur.execute( 'update myapp_kdaily_cns_tmp a, myapp_kdaily_cns_tmp b set a.p=b.c where a.product_id=b.product_id and a.id=b.id+1' )
+    cur.execute( "update myapp_kdaily_hks_tmp set h=h*adjC/c, l=l*adjC/c, o=o*adjC/c, amt=c, c=adjC, adjC=amt;" ) # where errInfo isnull;" ) # , c=adjC;  # some adjC isnull lead to fail of update" )
+    cur.execute( 'update myapp_kdaily_hks_tmp a, myapp_kdaily_hks_tmp b set a.p=b.c where a.product_id=b.product_id and a.id=b.id+1' )
+
+    cur.execute( "update myapp_kdaily_cns_tmp set chngPerc = 100*(c-p)/p;" )
+    cur.execute( "update myapp_kdaily_hks_tmp set chngPerc = 100*(c-p)/p;" )
+
+    cur.execute( 'update myapp_kdaily_cns_tmp set p=0 where ISNULL(p);' )  # because load file to table will fail if the p is null
+    cur.execute( 'update myapp_kdaily_hks_tmp set p=0 where ISNULL(p);' )
+    cur.execute( 'update myapp_kdaily_cns_tmp set chngPerc = 100*(c-o)/o where ISNULL(p);' )  # because load file to table will fail if the p is null
+    cur.execute( 'update myapp_kdaily_hks_tmp set chngPerc = 100*(c-o)/o where ISNULL(p);' )
+
+    # ??:: 高阴涨>低阳跌   cp关系在chng字段 ??
+    cur.execute( "update myapp_kdaily_hks_tmp set kt = 11 where c>p and c>=o;" )
+    cur.execute( "update myapp_kdaily_hks_tmp set kt = 10 where c>p and c<o;" )
+    cur.execute( "update myapp_kdaily_hks_tmp set kt = 1 where c<=p and c>o;" )
+    cur.execute( "update myapp_kdaily_hks_tmp set kt = 0 where c<=p and c<=o;" )
+    cur.execute( "update myapp_kdaily_cns_tmp set kt = 11 where c>p and c>=o;" )
+    cur.execute( "update myapp_kdaily_cns_tmp set kt = 10 where c>p and c<o;" )
+    cur.execute( "update myapp_kdaily_cns_tmp set kt = 1 where c<=p and c>o;" )
+    cur.execute( "update myapp_kdaily_cns_tmp set kt = 0 where c<=p and c<=o;" )
+
+    # update myapp_kdaily set type=0 where today's idxType
+    # A股参考指标 上证指数/深综指 算术 涨幅平均    kt呢？  或自动根据相关度选择确定参考指标
+
+
     #'''
     # cur.execute( 'ALTER TABLE myapp_kdaily_cns RENAME TO myapp_kdaily_cns2; ALTER TABLE myapp_kdaily_cns_tmp RENAME TO myapp_kdaily_cns;' )
     # cur.execute( "insert into myapp_kdaily_cns select id, p, o, h, l, c, chngPerc, adjC, amt, vol, product_id, date, pDate,  strftime('%w', date) weekday, strftime('%W', date) week, strftime('%m', date) month, strftime('%Y', date) year from myapp_kdaily_cns_tmp;" )
     conn.commit()
 
+    statement =" select * from myapp_kdaily_cns_tmp into outfile 'myapp_kdaily_cns_tmp.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+    cur.execute( statement )
+    statement =" select * from myapp_kdaily_hks_tmp into outfile 'myapp_kdaily_hks_tmp.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+    cur.execute( statement )
+
     #cur.execute("insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month<6 group by product_id;")
     #conn.commit()
 
-    cur.executescript(
+def execScript4Mysql(conn, script):
+    sqlLst = script.split(';')
+    cur = conn.cursor()
+    for sql in sqlLst:
+        if sql.strip()=='':
+            continue
+        cur.execute(sql)
+    conn.commit()
+
+def fromRedundant():
+    import mysql.connector
+    cnx = mysql.connector.connect(user='root', database='myapp')
+    execScript4Mysql(cnx,    #sqlite3:  cur.executescript(
 '''
 delete from myapp_productposition;
-insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month<6 group by product_id;
+insert into myapp_productposition(product_id, hYear, lYear) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 group by product_id;  # ???  and month<9
 
-delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month>5 group by product_id;
-update myapp_productposition set h3Mon=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
-update myapp_productposition set l3Mon=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
+delete from myapp_periodHL_;
+insert into myapp_periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2015 and month>5 group by product_id;
+update myapp_productposition set h3Mon=(select h from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
+update myapp_productposition set l3Mon=(select l from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
 
-delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2014 group by product_id;
-update myapp_productposition set h2Year=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
-update myapp_productposition set l2Year=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
+delete from myapp_periodHL_;
+insert into myapp_periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2014 group by product_id;
+update myapp_productposition set h2Year=(select h from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
+update myapp_productposition set l2Year=(select l from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
 
-delete from periodHL_;
-insert into periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2013 group by product_id;
-update myapp_productposition set h3Year=(select h from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
-update myapp_productposition set l3Year=(select l from periodHL_ where myapp_productposition.product_id=periodHL_.product_id);
+delete from myapp_periodHL_;
+insert into myapp_periodHL_(product_id, h, l) select product_id, max(h), min(l) from myapp_kdaily_cns_tmp where year=2013 group by product_id;
+update myapp_productposition set h3Year=(select h from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
+update myapp_productposition set l3Year=(select l from myapp_periodHL_ where myapp_productposition.product_id=myapp_periodHL_.product_id);
 
-update myapp_productposition set c=(select c from myapp_kdaily_cns_tmp where myapp_productposition.product_id=myapp_kdaily_cns_tmp.product_id and myapp_kdaily_cns_tmp.date='2015-09-23');
+update myapp_productposition set c=(select c from myapp_kdaily_cns_tmp where myapp_productposition.product_id=myapp_kdaily_cns_tmp.product_id and myapp_kdaily_cns_tmp.date='2015-10-09');
 
 update myapp_productposition set per2H = hyear / c;
 update myapp_productposition set per2l = c / l3mon;
-update myapp_productposition set per2l = c / lyear;
-
-''')
-    '''create view prodPos as select a.code, a.market, b.* from myapp_product a, myapp_productposition b where a.id=b.product_id
-    select  *, per2l*per2h space from prodpos where per2l*per2h>2.5 and c/l3year<1.2 l3mon<lyear order by per2l;'''
-    conn.commit()
+'''  # update myapp_productposition set per2l = c / lyear;
+)
+    #create view prodPos as select a.code, a.market, b.* from myapp_product a, myapp_productposition b where a.id=b.product_id
+    #select  *, per2l*per2h space from prodpos where per2l*per2h>2.5 and c/l3year<1.2 and l3mon<lyear order by per2l;
 
 
-
-def addPreClose(conn):
-    import pandas as pd
-
+def _addPreClose(conn):
     df_cns = pd.read_sql_query('select * from myapp_kDaily_cns', conn)
     df_hks = pd.read_sql_query('select * from myapp_kDaily_hks', conn)
     df_cni = pd.read_sql_query('select * from myapp_kDaily_cni', conn)
@@ -808,6 +885,40 @@ def preTreatment(conn):
 
 
 
+def groupK(fn, fld):  # conn, 
+    t = time.clock()
+    #dfD = pd.read_sql_query('select * from myapp_kDaily_cns_tmp where product_id = 8838 ', conn)
+    #dfD = pd.read_sql_query('select product_id,date,p,o,h,l,c,vol,year,month,week from myapp_kDaily_cns_tmp', conn)
+    dfD = pd.read_csv( fn )
+    #dfD = pd.read_csv( r'C:\Users\Administrator\Desktop\myapp_kdaily_hks_tmp.csv' )
+    print('read_sql_query time: %.03f' % (time.clock()-t) )
+    
+    t = time.clock()
+    grouped = dfD.groupby([dfD['product_id'], dfD['year'], dfD[fld]])
+    h=grouped['h'].max()
+    l=grouped['l'].min()
+    o=grouped['o'].first()
+    p=grouped['p'].first()
+    c=grouped['c'].last()
+    vol=grouped['vol'].sum()
+    startD=grouped['date'].min()
+    ih=grouped['h'].idxmax()
+    hD=dfD.iloc[ih]['date']
+    hD.name='hDate'
+    hD.index=o.index
+    il=grouped['l'].idxmin()
+    lD=dfD.iloc[il]['date']
+    lD.name='lDate'
+    lD.index=o.index
+    #dfM = pd.merge( pd.DataFrame(startD), pd.DataFrame(o), on=['product_id', 'year', fld] )
+    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(p), pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD), pd.DataFrame(vol) ] )
+    print('group month time: %.03f' % (time.clock()-t) )
+    return rsltDf
+
+
+
+#getWatchLst(r'D:\data\ths\export.txt')
+#create view watchl as select code,name,market,watchreason from myapp_product, myapp_watchlist where myapp_watchlist.product_id=myapp_product.id 
 
 fnLst = ['D:\data\codeBook\SH150926.SNT', 'D:\data\codeBook\SZ150926.SNT', 'D:\data\codeBook\HK150926.SNT', 'D:\data\codeBook\HI150926.SNT']
 t = time.clock()
@@ -845,6 +956,47 @@ for key in l2:
 print('getSSEProdLst|getSZSEProdLst time: %.03f' % (time.clock()-t) )
 '''
 
+'''
+cur = connHis.cursor()
+statement =" select * from myapp_kdaily_cns_tmp into outfile 'myapp_kdaily_cns_tmp.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+statement =" select * from myapp_kdaily_hks into outfile 'myapp_kdaily_hks_tmp.csv' fields terminated by ',' " # optionally enclosed by '"' escaped by '"' lines terminated by '\r\n'; 
+cur.execute( statement )
+'''
+
+def group():
+    t = time.clock()
+    dfW = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'week') #connHis, 
+    print('groupK time: %.03f' % (time.clock()-t) )
+    t = time.clock()
+    #dfW.to_sql('myapp_kweek', connHis, if_exists='append')
+    dfW.to_csv('myapp_cns_kweek.csv', encoding='utf-8', index=True)
+    print('to_sql time: %.03f' % (time.clock()-t) )
+    
+    dfM = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'month')  #connHis, 
+    t = time.clock()
+    #dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
+    dfM.to_csv('myapp_cns_kmonth.csv', encoding='utf-8', index=True)
+    print('to_sql time: %.03f' % (time.clock()-t) )
+    
+    
+    t = time.clock()
+    dfW = groupK(r'd:\myapp_kdaily_hks_tmp.csv', 'week') #connHis, 
+    print('groupK time: %.03f' % (time.clock()-t) )
+    t = time.clock()
+    #dfW.to_sql('myapp_kweek', connHis, if_exists='append')
+    dfW.to_csv('myapp_hks_kweek.csv', encoding='utf-8', index=True)
+    print('to_sql time: %.03f' % (time.clock()-t) )
+    
+    dfM = groupK(r'd:\myapp_kdaily_hks_tmp.csv', 'month')  #connHis, 
+    t = time.clock()
+    #dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
+    dfM.to_csv('myapp_hks_kmonth.csv', encoding='utf-8', index=True)
+    print('to_sql time: %.03f' % (time.clock()-t) )
+
+fromRedundant()
+
+#group()
+
 newBeforeHistBegin = False  # 假定每次数据入库后不会缺少dateHistBefore前时间段的数据，即dateHistBefore一旦产生后不会再变更
 newAfterHistEnd = False
 
@@ -876,7 +1028,8 @@ print('getHistFromCsv time: %.03f' % (time.clock()-t) )
 # prepareTrading time: 0.937
 
 t = time.clock()
-for i in range(11):
+for i in range(21):
+    #continue
     newBeforeHistBegin = False
     newAfterHistEnd = False
     getHist( prodDict8Submarket, conn, 10+10*(i/2) )
@@ -912,6 +1065,7 @@ t = time.clock()
 redundant(conn)
 print('redundant time: %.03f' % (time.clock()-t) )
 
+fromRedundant()
 
 
 t = time.clock()

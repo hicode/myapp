@@ -1,0 +1,16 @@
+insert into myapp_kdaily select * from myapp_kdaily_cns_tmp where date='2015-06-30' and h/l>1.19 and c=h;
+insert into watchp select a.* from myapp_product a, myapp_kdaily b where a.id=b.product_id;
+
+insert into myapp_kdaily select * from myapp_kdaily_cns_tmp where date='2015-07-08' and h/l>1.19 and c=h;
+insert into watchp select a.* from myapp_product a, myapp_kdaily b where a.id=b.product_id;
+
+insert into myapp_kdaily select * from myapp_kdaily_cns_tmp where date='2015-07-09' and h/l>1.19 and c=h;
+insert into watchp select a.* from myapp_product a, myapp_kdaily b where a.id=b.product_id;
+
+
+
+select a.product_id, c.name, c.code, c.market, (a.c-b.c)/b.c chng  from myapp_kdaily_cns_tmp a, myapp_kdaily b, myapp_product c where a.date='2015-07-03' and a.product_id=b.product_id  and a.product_id=c.id and not(c.code like '3%') order by (a.c-b.c)/b.c;
+
+select per2l*per2H space, c.name, c.code, c.market, b.*  from myapp_productposition b, watchp c where b.product_id=c.id and per2L<1.19 and per2l*per2H>2.6 order by per2l;
+
+

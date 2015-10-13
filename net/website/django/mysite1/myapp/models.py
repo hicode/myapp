@@ -4,9 +4,9 @@
 from django.contrib import admin
 from _mysql import NULL
 from django.db.models.fields.related import ForeignKey
-from coverage import start
+#???from coverage import start
 from numpy import maximum
-from untws.instrument import Stock
+#from untws.instrument import Stock
 from pandas.io.wb import country_codes
 from apptools.type_registry.tests.dummies import Abstract
 
@@ -140,8 +140,6 @@ class ProductIdx(models.Model):              # cci, boll, rsi, kdj, psy,  sma, m
 
 # watchreason
 class WatchList(models.Model):
-    #code = models.CharField(max_length=8)     
-    #market = models.CharField(max_length=8)
     product = models.OneToOneField(Product)     
     watchReason = models.CharField(max_length=256)     
     def __str__(self):
@@ -155,11 +153,13 @@ class _KNoId(models.Model):
     h = models.DecimalField(max_digits=8, decimal_places=3)
     l = models.DecimalField(max_digits=8, decimal_places=3)
     c = models.DecimalField(max_digits=8, decimal_places=3)
-    chngPerc = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
+    kt = models.DecimalField(max_digits=2, decimal_places=0)
+    chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
+    r_kt = models.DecimalField(max_digits=2, decimal_places=0)  # r_:: relative / reference product
+    r_chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
     adjC = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # adjusted close
     ratioFrwd = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
     ratioBack = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
-    chngPerc = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
     amt = models.DecimalField(max_digits=16, decimal_places=2, null=True)
     vol = models.DecimalField(max_digits=16, decimal_places=0)
     class Meta:
@@ -230,7 +230,7 @@ class _KDaily(_KD):
     h = models.DecimalField(max_digits=8, decimal_places=3)
     l = models.DecimalField(max_digits=8, decimal_places=3)
     c = models.DecimalField(max_digits=8, decimal_places=3)
-    chngPerc = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
+    chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
     adjC = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # adjusted close
     amt = models.DecimalField(max_digits=16, decimal_places=2, null=True)
     vol = models.DecimalField(max_digits=16, decimal_places=0)
@@ -343,7 +343,7 @@ class TradeRealTime(models.Model):             # o/h/l/vol for k-line is null, p
     date = models.DateField() 
     p = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # previous close
     c = models.DecimalField(max_digits=8, decimal_places=3)
-    chngPerc = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
+    chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
     adjC = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # adjusted close
     ratioFrwd = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
     ratioBack = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
@@ -430,4 +430,5 @@ class productStatus(models.Model):
 class periodHL_(models.Model):
     product = models.ForeignKey(Product)     
     l = models.DecimalField(max_digits=8, decimal_places=3)
-    c = models.DecimalField(max_digits=8, decimal_places=3)
+    #c = models.DecimalField(max_digits=8, decimal_places=3)
+    h = models.DecimalField(max_digits=8, decimal_places=3)
