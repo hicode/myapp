@@ -18,15 +18,140 @@ class dayK_TDX(Structure):  # ?? c_int
 
 
 
-class dayK_THS_rec(Structure):
+#'''
+class tick_Dzh_(Structure):
     _pack_ = 1
-    _fields_ = [ ('date',c_uint32), ('o',c_uint32), ('h',c_uint32), ('l',c_uint32), ('c',c_uint32), ('amnt',c_uint32), ('vol',c_uint32) ] #,
-    '''  
-      ('rsv1',c_uint32) , ('rsv2',c_uint32), ('rsv3',c_uint32), ('rsv4',c_uint32), ('rsv5',c_uint32), ('rsv6',c_uint32), ('rsv7',c_uint32), ('rsv8',c_uint32), ('rsv9',c_uint32), ('rsv10',c_uint32),
-      ('rsv11',c_uint32) , ('rsv12',c_uint32), ('rsv13',c_uint32), ('rsv14',c_uint32), ('rsv15',c_uint32), ('rsv16',c_uint32), ('rsv17',c_uint32), ('rsv18',c_uint32), ('rsv19',c_uint32), ('rsv20',c_uint32),
-      ('rsv21',c_uint32) , ('rsv22',c_uint32), ('rsv23',c_uint32), ('rsv24',c_uint32), ('rsv25',c_uint32), ('rsv26',c_uint32), ('rsv27',c_uint32), ('rsv28',c_uint32), ('rsv29',c_uint32), ('rsv30',c_uint32),
-      ('rsv31',c_uint32) , ('rsv32',c_uint32), ('rsv33',c_uint32), ('rsv34',c_uint32), ('rsv35',c_uint) ]
-    '''
+    _fields_ = [ ('t',c_int32), ('c',c_float), ('vol',c_float), ('amt',c_float), ('dealnum',c_uint16), ('x',c_uint16), ('overflowMark',c_byte), ('sbType',c_byte), 
+                ('volB1',c_uint16), ('volB2',c_uint16), ('volB3',c_uint16), ('volB4',c_uint16), ('volB5',c_uint16), 
+                ('volS1',c_uint16), ('volS2',c_uint16), ('volS3',c_uint16), ('volS4',c_uint16), ('volS5',c_uint16), 
+                ('pB1',c_byte), ('pB2',c_byte), ('pB3',c_byte), ('pB4',c_byte), ('pB5',c_byte), 
+                ('pS1',c_byte), ('pS2',c_byte), ('pS3',c_byte), ('pS4',c_byte), ('pS5',c_byte) ]
+    # sbType : C0|A0-sell    80|E0-buy
+
+class tick_Dzh(Structure):
+    _pack_ = 1
+    _fields_ = [ ('volB1',c_uint32), ('volB2',c_uint32), ('volB3',c_uint32), ('volB4',c_uint32), ('volB5',c_uint32) ]
+    # sbType : C0|A0-sell    80|E0-buy
+
+def getPrp_Dzh(fn, pid):
+    pass
+
+def getTick_Dzh(fn, pid):
+    try:
+        recLst = []
+        with open( fn, 'rb' ) as fp:  # HTTP Error 404: Not Found
+            rec = tick_Dzh()
+            fp.read(0x2a0)
+            while 0 <> fp.readinto( rec ):   # sizeof(head) is 20 ??set pack=1  # x = fp.read(16)
+                recLst.append( rec ) #[pid, '%04d-%02d-%02d' % (year, mon, day), rec.seq, type, rec.p/1000.0, rec.buy/1000.0, rec.sell/1000.0, rec.vol, rec.dealnum ] )
+                rec = tick_Dzh()
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    return recLst
+
+def getDzhTickData(conn):
+    #cur = conn.cursor()
+    import scandir
+
+    dirLst = [('sz', 'sz'), ('sh', 'sh')]
+    fileDict = {}
+    for d in dirLst:
+        dir = 'C:\\dzh365\\data\\%s\\TEMP\\'  % d[0]
+        market = d[1].upper()
+        if market<>'SZ':
+            continue
+        tblName = 'myapp_productweight'
+        recLst = []
+        for path, subdirs, files in scandir.walk(dir):
+            for fn in files:
+                code=fn.split('.')[0]
+                if code<>'000002':
+                    continue
+                #if market=='HK':
+                #    code = '0' + code
+                prodId=code + '.' + market
+                #if prodId not in prodMapId.keys():
+                #    sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+                #    continue
+                recLst += getTick_Dzh(dir + fn, 1) #prodMapId[prodId].id)
+                #submarket = Submarket(market, code)
+        #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
+        if recLst<>[]:
+            cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
+            conn.commit()
+
+getDzhTickData(1)
+#'''
+
+
+def l2txt(fn, lst):
+    with open(fn, 'w') as fp:
+        for r in lst:
+            fp.write(str(r)+'\r\n')
+
+class tick_QL(Structure):
+    _pack_ = 1
+    _fields_ = [ ('seq',c_uint32), ('date',c_uint32), ('p',c_uint32), ('x',c_uint32), ('vol',c_uint32), ('buy',c_uint32), ('sell',c_uint32), ('dealnum',c_uint32), ('x1',c_uint32), ('x2',c_uint32), ('x3',c_uint32), ('x4',c_uint32), ('x5',c_uint32) ]
+
+def getTick_QL(fn, pid):  # 成交量待正解 dealnum待正解
+    try:
+        recLst = []
+        with open( fn, 'rb' ) as fp:  # HTTP Error 404: Not Found
+            rec = tick_QL()
+            fp.read(8)
+            while 0 <> fp.readinto( rec ):   # sizeof(head) is 20 ??set pack=1  # x = fp.read(16)
+                type = rec.date >> 24
+                date = rec.date % 0x1000000
+                t = date%0x8000
+                m = (t+8)/60 + 6 
+                h = 9 + m/60
+                m = m % 60
+                byte1 = rec.vol % 0x100
+                hbit11 = rec.vol/0x200000
+                num = (rec.vol>>8)%0x2000  #13bit
+                recLst.append( [pid, '%02d:%02d'%(h,m), date>>13, rec.seq, type, rec.p/1000.0, rec.buy/1000.0, rec.sell/1000.0, rec.vol, byte1, hbit11, num, rec.dealnum ] )
+                rec = tick_QL()
+                l2txt(r'd:\\tick.csv', recLst)
+
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    return recLst
+
+def getQlTickData(conn):
+    #cur = conn.cursor()
+    import scandir
+
+    dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hkse','hk')]
+    fileDict = {}
+    for d in dirLst:
+        dir = 'D:\\qianlong1\\qijian\\QLDATA\\realtime\\%s\\detail\\' % d[0]
+        market = d[1].upper()
+        if market<>'HK':
+            continue
+        tblName = 'myapp_productweight'
+        recLst = []
+        for path, subdirs, files in scandir.walk(dir):
+            for fn in files:
+                code=fn.split('.')[0]
+                if market=='HK':
+                    code = '0' + code
+                prodId=code + '.' + market
+                #if prodId not in prodMapId.keys():
+                #    sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+                #    continue
+                recLst += getTick_QL(dir + fn, 1) #prodMapId[prodId].id)
+                #submarket = Submarket(market, code)
+        #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
+        if recLst<>[]:
+            cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
+            conn.commit()
+
+#getQlTickData(1)
+
+
+
 
 class compIdx_THS(Structure):
     _pack_ = 1
@@ -41,24 +166,9 @@ class dividend_THS_rec(Structure):
     _fields_ = [ ('date',c_uint32), ('w1',c_int32), ('exdividendDate',c_int32), ('cash',c_uint32), ('split',c_uint32), 
                 ('bonus',c_uint32), ('dispatch',c_uint32), ('price',c_uint32), ('regDate',c_uint32), ('listingDate',c_uint32), ('desc',c_uint32) ]
 
-class tHS_FHeader(Structure):  # ?? BigEndianStructure
-    _pack_ = 1
-    _fields_ = [ ('sign', c_uint32), ('w1', c_uint16), ('recCount', c_uint32), ('headerLen', c_uint16), ('recLen', c_uint16), ('fldCount', c_uint16) ]   # header.RecordCount = reader.ReadUInt32() & 0xffffff;
-    # ('fldCount', c_uint32)
-
 class dayK_THS(Structure):
     header = tHS_FHeader()
     # fldList
-
-def getValTHS(val):
-    num = val & 0xfffffff  # 后28bit
-    num2 = val >> 0x1c     # 前4bit
-    if num2 & 7 == 0:      # 2/3/4bit为000
-        return num
-    num3 = pow(10.0, (num2&7))
-    if (num2&8)<>0:        # 1bit is 1
-        return num/num3
-    return num * num3
 
 def diviFromThs(fn, pid):
     idxDivi = compIdx_THS_rec()
@@ -79,7 +189,8 @@ def diviFromThs(fn, pid):
             for i in range(headIdxBlock.idxNum):  #while fp.readinto(k1):
                 fp.readinto( idxDivi )
                 idxDiviLst.append( idxDivi )
-            
+                idxDivi = compIdx_THS_rec()
+
             for idx in idxDiviLst:  #while fp.readinto(k1):
                 validRecNum = idx.recNum-idx.freeRecNum-1
                 for i in idx.recNum:
@@ -88,62 +199,19 @@ def diviFromThs(fn, pid):
                     fp.seek(idx.addr)
                     fp.readinto( recDivi )
                     recDiviLst.append( recDivi ) #recDiviLst.append( [pid, k1.date, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
+                    recDivi = dividend_THS_rec()
     except IOError, e:
         sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
         return ''
     return recDiviLst
 
-def hisFromThs(fn, pid):
-    #fn = r'C:\htzqzyb2\history\shase\day\600000.day'
-    k1=dayK_THS_rec()
-    try:
-        recLst = []
-        with open( fn, 'rb' ) as fp:  # HTTP Error 404: Not Found
-            head = tHS_FHeader()
-            fp.readinto( head )   # sizeof(head) is 20 ??set pack=1  # x = fp.read(16)
-            fp.read( head.headerLen-sizeof(head) ) # read columnList
-            head.recCount = head.recCount & 0xffffff
-            for i in range(head.recCount):  #while fp.readinto(k1):
-                fp.readinto(k1)
-                fp.read( head.recLen-sizeof(k1) ) # unused
-                recLst.append( [pid, k1.date, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
-    except IOError, e:
-        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
-        return ''
-    return recLst
-
-
-diviFromThs(u'D:\\data\\hqzqzyb2\\finance\\权息资料.财经', 1)
-
-def getTHSData(conn):
-    cur = conn.cursor()
-    import scandir
-
-    dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
-    fileDict = {}
-    for d in dirLst:
-        #for dir in 
-        dir = 'C:\\htzqzyb2\\history\\%s\\day\\'%d[0]
-        market = d[1]
-        for path, subdirs, files in scandir.walk(dir):
-            for fn in files:
-                code=fn.split('.')[0]
-                prodId=code + '.' + market
-                #if prodId not in prodMapId.keys():
-                #    continue
-                #fileDict[prodId] = (dir + fn, code, market)
-                recLst = hisFromThs(dir + fn, 1) #prodMapId[prodId].id)
-                submarket = Submarket(market, code)
-                tblName = 'myapp_kdaily_' + MapSubmarket2Table( submarket )
-                cur.executemany( "insert into %s(product_id, date, o, h, l, c, amt, vol, adjC)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
-                conn.commit()
+#diviFromThs(u'D:\\data\\hqzqzyb2\\finance\\权息资料.财经', 1)
 
 
 import sqlite3 as db
 
 conn = db.connect( r'D:\data\dayk1.db' )
 
-getTHSData(conn)
 
 
 cur = conn.cursor()

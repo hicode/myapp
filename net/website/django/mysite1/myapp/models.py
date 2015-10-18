@@ -117,6 +117,25 @@ class ProductFinacialRpt(models.Model):
 #    class admin:
 #        pass
 
+class ProductWeight(models.Model):   # 拆细信息是否会在权息文件中？
+    #code = models.CharField(max_length=8)     
+    #market = models.CharField(max_length=8)
+    product = models.ForeignKey(Product, unique_for_date='date')     
+    date = models.DateField()
+    bonus = models.DecimalField(max_digits=8, decimal_places=3)
+    giftStck = models.DecimalField(max_digits=4, decimal_places=2)
+    incrStck = models.DecimalField(max_digits=4, decimal_places=2)
+    sellStck = models.DecimalField(max_digits=4, decimal_places=2)
+    p4SellStck = models.DecimalField(max_digits=8, decimal_places=3)
+    freeStck = models.DecimalField(max_digits=16, decimal_places=0)
+    totalStck = models.DecimalField(max_digits=16, decimal_places=0)
+    def __str__(self):
+        return '%s.%s' % (self.code, self.market)
+    class Meta:
+        unique_together = ('product', 'date')
+#    class admin:
+#        pass
+
 class ProductData(models.Model):
     #code = models.CharField(max_length=8)     
     #market = models.CharField(max_length=8)
@@ -153,9 +172,9 @@ class _KNoId(models.Model):
     h = models.DecimalField(max_digits=8, decimal_places=3)
     l = models.DecimalField(max_digits=8, decimal_places=3)
     c = models.DecimalField(max_digits=8, decimal_places=3)
-    kt = models.DecimalField(max_digits=2, decimal_places=0)
+    kt = models.DecimalField(max_digits=2, decimal_places=0, null=True)
     chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
-    r_kt = models.DecimalField(max_digits=2, decimal_places=0)  # r_:: relative / reference product
+    r_kt = models.DecimalField(max_digits=2, decimal_places=0, null=True)  # r_:: relative / reference product
     r_chngPerc = models.DecimalField(max_digits=7, decimal_places=3, null=True)  # change percent
     adjC = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # adjusted close
     ratioFrwd = models.DecimalField(max_digits=8, decimal_places=3, null=True)  # change percent
