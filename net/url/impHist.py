@@ -5,6 +5,7 @@ from ctypes import *
 from net.url.dataSource import regDataFromUrl, dataFromUrl
 
 from common import * 
+import globalData
 
 
 def getHKProdLst_ifeng():
@@ -55,7 +56,9 @@ def getSZSEProdLst():
 
 
 def getHist(prodDict8Submarket, conn, timeout):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
-    global newBeforeHistBegin, newAfterHistEnd
+    newBeforeHistBegin = False  # 假定每次数据入库后不会缺少dateHistBefore前时间段的数据，即dateHistBefore一旦产生后不会再变更
+    newAfterHistEnd = False
+
 
     cur = conn.cursor()
     qryEndDate = "&d=%02d&e=%02d&f=%d" % ( datetime.now().month-1, datetime.now().day, datetime.now().year )
@@ -143,6 +146,8 @@ def getHist(prodDict8Submarket, conn, timeout):  # http://ichart.yahoo.com/table
                 sys.stdout.write(  'except while executemany insert:' + prod.code+'.'+market + ' Error: ' + str(e) + '\r\n' )
             conn.commit()
             #print('executemany time: %.03f' % (time.clock()-t) )
+
+    postImportData(conn, newAfterHistEnd, newBeforeHistBegin)
     return
 
 def getHist2Csv(prodDict8Submarket, timeout):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
@@ -183,7 +188,8 @@ def getHist2Csv(prodDict8Submarket, timeout):  # http://ichart.yahoo.com/table.c
     return
 
 def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.csv?s=600000.SS&a=01&b=01&c=1990&d=08&e=30&f=2015&g=d 
-    global newBeforeHistBegin, newAfterHistEnd
+    newBeforeHistBegin = False  # 假定每次数据入库后不会缺少dateHistBefore前时间段的数据，即dateHistBefore一旦产生后不会再变更
+    newAfterHistEnd = False
 
     cur = conn.cursor()
     workYesterdayStr = workYesterday()
@@ -237,7 +243,7 @@ def getHistFromCsv(prodDict8Submarket, conn):  # http://ichart.yahoo.com/table.c
 
 
     t = time.clock()
-    postImportData(conn)
+    postImportData(conn, newAfterHistEnd, newBeforeHistBegin)
     print('postImportData time: %.03f' % (time.clock()-t) )
     return
 
@@ -268,7 +274,7 @@ def getQianLongDailyRpt(fn, conn): #, market):
         else:
             market='SZ'
         code = fld[1].strip(" '")
-        p = prodMapId[ code + '.' + market ]    # p = Product.objects.get(id=prod_id)        #except ObjectDoesNotExist:
+        p = globalData.prodMapId[ code + '.' + market ]    # p = Product.objects.get(id=prod_id)        #except ObjectDoesNotExist:
         if code=='600000':
             pass
         #if code in prodDict8Submarket[ Submarket( market, code) ]:
@@ -283,6 +289,7 @@ def getQianLongDailyRpt(fn, conn): #, market):
     except db.Error,e:
         sys.stdout.write(  'except while executemany insert:' + ' Error: ' + str(e) + '\r\n' )
     conn.commit()
+    postImportData(conn, newAfterHistEnd=True)  #　??:: newAfterHistEnd=True
 
 
 def csv2Db(path,conn):
@@ -291,7 +298,7 @@ def csv2Db(path,conn):
         #f = sys.read(file)
         conn.commit()
 
-def postImportData(conn):
+def postImportData(conn, newAfterHistEnd=False, newBeforeHistBegin=False):
     cur = conn.cursor()
     
     # move/append new data to internal no-update table, ratioFrwd may change ??
@@ -405,14 +412,21 @@ def getQlData(conn):
                 if market=='HK':
                     code = '0' + code
                 prodId=code + '.' + market
-                if prodId not in prodMapId.keys():
+                if prodId not in globalData.prodMapId.keys():
                     sys.stdout.write(  'code not found:' + prodId + '\r\n' )
                     continue
-                recLst += getWeight_QL(dir + fn, prodMapId[prodId].id)
+                recL = getWeight_QL(dir + fn, globalData.prodMapId[prodId].id)
+                recLst += recL
+                with open(r'D:\data\weightcsv\ths\%s.wght.csv' % prodId, 'w') as fp:
+                    fp.write('date,bonus,giftStck,incrStck,sellStck,p4SellStck,freeStck,totalStck\r\n')
+                    for rec in recL:
+                        for fld in rec[1:]: 
+                            fp.write( str(fld)+',' )
+                        fp.write( '\r\n' )
                 submarket = Submarket(market, code)
         #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
-        cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
-        conn.commit()
+        #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
+        #conn.commit()
 
 class dayK_THS_rec(Structure):
     _pack_ = 1
@@ -423,6 +437,7 @@ class dayK_THS_rec(Structure):
       ('rsv21',c_uint32) , ('rsv22',c_uint32), ('rsv23',c_uint32), ('rsv24',c_uint32), ('rsv25',c_uint32), ('rsv26',c_uint32), ('rsv27',c_uint32), ('rsv28',c_uint32), ('rsv29',c_uint32), ('rsv30',c_uint32),
       ('rsv31',c_uint32) , ('rsv32',c_uint32), ('rsv33',c_uint32), ('rsv34',c_uint32), ('rsv35',c_uint) ]
     '''
+
 
 class tHS_FHeader(Structure):  # ?? BigEndianStructure
     _pack_ = 1
@@ -453,7 +468,7 @@ def hisFromThs(fn, pid):
                 fp.readinto(k1)
                 fp.read( head.recLen-sizeof(k1) ) # unused
                 if k1.date==0 or k1.o==0 or k1.h==0 or k1.l==0 or k1.c==0 or k1.amnt==0 or k1.vol==0:
-                    sys.stdout.write(  'error history record of pid:' + str(pid) + '\r\n' )
+                    sys.stdout.write(  'error history record of pid:' + str(pid) + 'record:: ' + str(k1) + '\r\n' )
                     continue
                 dateStr = '%04d-%s-%02d' % (k1.date/10000, str(k1.date)[4:6], k1.date%100)
                 recLst.append( [pid, dateStr, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
@@ -475,15 +490,26 @@ def getTHSData(conn):
         for path, subdirs, files in scandir.walk(dir):
             for fn in files:
                 code=fn.split('.')[0]
-                if code<>'600072':
-                    continue
+                #if code<>'600072':
+                #    continue
                 prodId=code + '.' + market
-                if prodId not in prodMapId.keys():
+                if prodId not in globalData.prodMapId.keys():
                     sys.stdout.write(  'code not found:' + prodId + '\r\n' )
                     continue
                 #fileDict[prodId] = (dir + fn, code, market)
-                recLst = hisFromThs(dir + fn, prodMapId[prodId].id)
+                recLst = hisFromThs(dir + fn, globalData.prodMapId[prodId].id)
+                lines = ['pid,date,o,h,l,c,amt,vol,AdjC\r\n']  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
+                for rec in recLst:
+                    ln = code + '.' + market
+                    for fld in rec[1:]: 
+                        ln += ',' + str(fld)
+                    ln += '\r\n'
+                    lines.append( ln )
                 submarket = Submarket(market, code)
+                with open(r'D:\data\histcsv\ths\%s.%s.%s.csv' % (market,submarket,code), 'w') as fp:
+                    fp.writelines( lines )
+
+                '''
                 tblName = 'myapp_kdaily_' + MapSubmarket2Table( submarket )
                 try:
                     #cur.executemany( "insert into %s(product_id, date, o, h, l, c, amt, vol, adjC)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
@@ -491,3 +517,42 @@ def getTHSData(conn):
                 except db.Error,e:
                     sys.stdout.write(  'except while executemany insert:' + prodId + ' Error: ' + str(e) + '\r\n' )
                 conn.commit()
+                '''
+
+def getTHSData2OneFile(conn):
+    cur = conn.cursor()
+    import scandir
+
+    dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
+    fileDict = {}
+    head = 'pid,y,m,d,date,o,h,l,c,amt,vol,AdjC\r\n'  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
+    recDict = {}
+    for d in dirLst:
+        #for dir in 
+        dir = 'C:\\htzqzyb2\\history\\%s\\day\\' % d[0]
+        market = d[1].upper()
+        for path, subdirs, files in scandir.walk(dir):
+            for fn in files:
+                code=fn.split('.')[0]
+                prodId=code + '.' + market
+                if prodId not in globalData.prodMapId.keys():
+                    sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+                    continue
+                submarket = Submarket(market, code)
+                if not( submarket in recDict.keys() ):
+                    recDict[submarket] = []
+                    recDict[submarket].append(head)
+
+                recLst = hisFromThs(dir + fn, globalData.prodMapId[prodId].id)
+                for rec in recLst:
+                    ln = code + '.' + market
+                    y,m,d = str(rec[1]).split('-')
+                    ln += ',' + y + ',' + m + ',' + d + ',' + y+m+d   
+                    for fld in rec[2:]: 
+                        ln += ',' + str(fld)
+                    ln += '\r\n'
+                    recDict[submarket].append( ln )
+
+    for subM in recDict.keys():
+        with open(r'D:\data\histcsv\ths\%s.csv' % subM, 'w') as fp:
+            fp.writelines( recDict[subM] )

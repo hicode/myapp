@@ -4,18 +4,20 @@ import pandas as pd
 
 import re
 import codecs
-import os
 
 from common import * 
 from impHist import * 
+import globalData
 
 def export2Txt(conn):
     fn = 'd:\product.txt'
     fp = open(fn, 'w')
     cur = conn.cursor()
-    pAll = Product.object.all()
+    pAll = Product.objects.all()
     for p in pAll:
-        fp.write( p.code +  p.market )
+        fp.write( p.code + '.' +  p.market + '\r\n')
+
+export2Txt(conn)
 
 def getAStockRealtime(stockLst):
     url = r'http://hq.sinajs.cn/list=%s' % stockLst
@@ -176,7 +178,7 @@ def priceAdjust(conn):
     cur.execute( "update myapp_product set ratioFrwdBegin = (select ratioFrwd from myapp_kdaily_hks where myapp_kdaily_hks.product_id = myapp_product.id and myapp_kdaily_hks.date = myapp_product.dateHistBegin ) where market='HK'" )
     conn.commit()
 
-    submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
+    globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()  # why ??
     # price of history data from yahoo is forward adjust price
     # backward adjust price = real-price * ratioBack,  ratioBack = 1st rationFrwd / rationFrwd
     for key in prodDict8Submarket:
@@ -553,21 +555,41 @@ def group():
 
 #group()
 
-newBeforeHistBegin = False  # 假定每次数据入库后不会缺少dateHistBefore前时间段的数据，即dateHistBefore一旦产生后不会再变更
-newAfterHistEnd = False
 
 t = time.clock()
-postImportData(conn)
-print('postImportData time: %.03f' % (time.clock()-t) )
-
-
-t = time.clock()
-submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
+globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()
 print('prepareTrading time: %.03f' % (time.clock()-t) )
 
-getQlData( conn )
+'''
+colCode = []
+colName = []
+colMarket = []
+colSubmarket = []
+colId = []
+for prd in globalData.prodMapId.keys():
+    colId.append( prd )
+    colName.append( globalData.prodMapId[prd].name )
+    colCode.append( globalData.prodMapId[prd].code )
+    colMarket.append( globalData.prodMapId[prd].market )
+    colSubmarket.append( globalData.prodMapId[prd].submarket )
 
-getTHSData( conn )
+d={'name': pd.Series(colName, index=colId),
+   'code': pd.Series(colCode, index=colId),
+   'market': pd.Series(colMarket, index=colId),
+   'submarket': pd.Series(colSubmarket, index=colId),
+   }
+prdDf = pd.DataFrame( d )
+'''
+
+
+#getQlData( conn )
+
+#arrangeCsvScan(r'D:\data\histcsv\ths')
+
+t = time.clock()
+#getTHSData( conn )
+getTHSData2OneFile( conn )
+print('getTHSData time: %.03f' % (time.clock()-t) )
 
 
 #'''
@@ -578,11 +600,8 @@ print('getHist2Csv time: %.03f' % (time.clock()-t) )
 
 
 t = time.clock()
-newBeforeHistBegin = False
-newAfterHistEnd = False
 getHistFromCsv(prodDict8Submarket, conn)
-postImportData(conn)
-submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
+globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()
 print('getHistFromCsv time: %.03f' % (time.clock()-t) )
 
 # getDzhCodeLst time: 55.077
@@ -592,11 +611,8 @@ print('getHistFromCsv time: %.03f' % (time.clock()-t) )
 t = time.clock()
 for i in range(21):
     #continue
-    newBeforeHistBegin = False
-    newAfterHistEnd = False
     getHist( prodDict8Submarket, conn, 10+10*(i/2) )
-    submarketLst, prodIdMap, prodMapId, prodDict8Submarket = prepareTrading()
-    postImportData(conn)
+    globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()
 print('getHist time: %.03f' % (time.clock()-t) )
 
 
@@ -622,7 +638,6 @@ fl.sort()
 t = time.clock()
 #getQianLongDailyRpt(fl[-1], conn)
 print('getQianLongDailyRpt time: %.03f' % (time.clock()-t) )
-#postImportData(conn)
 #fl = [u'D:\data\报价--深证Ａ股.txt', u'D:\data\报价--上证Ａ股.txt']
 #getQianLongDailyRpt(fl[1], 'SH')
 

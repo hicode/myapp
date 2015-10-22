@@ -106,7 +106,7 @@ DATABASES = {
     },
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(r'D:\data\slowdb', 'db.sqlite3'),
+        'NAME': os.path.join(r'D:\data\slowdb', 'east.sqlite3'),
     },
     'default1': { #mem
         'ENGINE': 'django.db.backends.sqlite3',

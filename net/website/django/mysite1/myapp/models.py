@@ -75,7 +75,7 @@ class ProductConcept(models.Model):
     class Meta:
         unique_together = ('product', 'groupName')
 
-class StockInfo(models.Model):
+class ProductInfo(models.Model):
     #code = models.CharField(max_length=8)     
     #market = models.CharField(max_length=8)
     product = models.OneToOneField(Product)     
@@ -141,7 +141,12 @@ class ProductData(models.Model):
     #market = models.CharField(max_length=8)
     product = models.ForeignKey(Product, unique_for_date='date')     
     date = models.DateField() 
-    rzrq = models.DecimalField(max_digits=16, decimal_places=0)
+    marginBuy = models.DecimalField(max_digits=16, decimal_places=0)
+    marginPay = models.DecimalField(max_digits=16, decimal_places=0)
+    marginAmt = models.DecimalField(max_digits=16, decimal_places=0)
+    shortSell = models.DecimalField(max_digits=16, decimal_places=0)
+    shortPay = models.DecimalField(max_digits=16, decimal_places=0)
+    shortVol = models.DecimalField(max_digits=16, decimal_places=0)
     def __str__(self):
         return '%s.%s' % (self.code, self.market)
     class Meta:
