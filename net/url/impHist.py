@@ -388,7 +388,7 @@ def getWeight_QL(fn, pid):
                 year = rec.date >> 20
                 mon = (rec.date%0x100000) / 0x10000    # (int)(((uint)(oneRow[0] << 12))>> 28);
                 day = (rec.date&0xffff) >> 11
-                recLst.append( [pid, '%04d-%02d-%02d' % (year, mon, day), rec.stckCntAsGift/100000.0, rec.stckCnt4Sell/100000.0, rec.p4Sell/10000.0, rec.bonus/10000.0, rec.stckCntofIncr/100000.0, rec.stckOwnership, rec.freeStckCnt ] )
+                recLst.append( [pid, '%04d-%02d-%02d' % (year, mon, day), rec.stckCntAsGift/100000.0, rec.stckCnt4Sell/100000.0, rec.p4Sell/1000.0, rec.bonus/10000.0, rec.stckCntofIncr/100000.0, rec.stckOwnership, rec.freeStckCnt ] )
     except IOError, e:
         sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
         return ''
@@ -399,7 +399,6 @@ def getQlData(conn):
     import scandir
 
     dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hkse','hk')]
-    fileDict = {}
     for d in dirLst:
         #for dir in 
         dir = 'D:\\qianlong1\\qijian\\QLDATA\\history\\%s\\weight\\' % d[0]
@@ -416,17 +415,62 @@ def getQlData(conn):
                     sys.stdout.write(  'code not found:' + prodId + '\r\n' )
                     continue
                 recL = getWeight_QL(dir + fn, globalData.prodMapId[prodId].id)
+                lines = ['pid,date,giftStck,sellStck,p4Sell,bonus,incrStck,totalStck,freeStck\r\n']
                 recLst += recL
-                with open(r'D:\data\weightcsv\ths\%s.wght.csv' % prodId, 'w') as fp:
-                    fp.write('date,bonus,giftStck,incrStck,sellStck,p4SellStck,freeStck,totalStck\r\n')
-                    for rec in recL:
-                        for fld in rec[1:]: 
-                            fp.write( str(fld)+',' )
-                        fp.write( '\r\n' )
+                for rec in recL:
+                    ln = code + '.' + market
+                    y,m,d = str(rec[1]).split('-')
+                    ln += ',' + y+m+d   
+                    for fld in rec[2:]: 
+                        ln += ',' + str(fld)
+                    ln += '\r\n'
+                    lines.append( ln )
+                with open(r'D:\data\weightcsv\ql\%s.%s.wght.csv' % (market, code), 'w') as fp:
+                    fp.writelines( lines )
+
                 submarket = Submarket(market, code)
         #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", recLst )
         #cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
         #conn.commit()
+
+def getQLData2OneFile(conn):
+    cur = conn.cursor()
+    import scandir
+
+    dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hkse','hk')]
+    head = 'pid,date,giftStck,sellStck,p4Sell,bonus,incrStck,totalStck,freeStck\r\n'
+    recDict = {}
+    for d in dirLst:
+        dir = 'D:\\qianlong1\\qijian\\QLDATA\\history\\%s\\weight\\' % d[0]
+        market = d[1].upper()
+        recLst = []
+        for path, subdirs, files in scandir.walk(dir):
+            for fn in files:
+                code=fn.split('.')[0]
+                if market=='HK':
+                    code = '0' + code
+                prodId=code + '.' + market
+                if prodId not in globalData.prodMapId.keys():
+                    sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+                    continue
+                submarket = Submarket(market, code)
+                if not( submarket in recDict.keys() ):
+                    recDict[submarket] = []
+                    recDict[submarket].append(head)
+
+                recL = getWeight_QL(dir + fn, globalData.prodMapId[prodId].id)
+                for rec in recL:
+                    ln = code + '.' + market
+                    y,m,d = str(rec[1]).split('-')
+                    ln += ',' + y+m+d   
+                    for fld in rec[2:]: 
+                        ln += ',' + str(fld)
+                    ln += '\r\n'
+                    recDict[submarket].append( ln )
+    for subM in recDict.keys():
+        with open(r'D:\data\weightcsv\ql\%s.wght.csv' % subM, 'w') as fp:
+            fp.writelines( recDict[subM] )
+
 
 class dayK_THS_rec(Structure):
     _pack_ = 1

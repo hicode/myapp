@@ -582,7 +582,8 @@ prdDf = pd.DataFrame( d )
 '''
 
 
-#getQlData( conn )
+getQlData( conn )
+getQLData2OneFile( conn )
 
 #arrangeCsvScan(r'D:\data\histcsv\ths')
 

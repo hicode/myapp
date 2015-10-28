@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import pandas as pd
 
 from common import *
@@ -8,6 +10,7 @@ from common import *
 from net.website.django.mysite1.myapp.models import TradeRealTime
 from xlwt.Utils import cellrange_to_rowcol_pair
 '''
+
 
 prdLst = []
 with open(r'd:\east.txt') as fp:
@@ -50,68 +53,201 @@ CellRange('prodDict', 'D2:D%d'%x).value = prdDf.market
 CellRange('prodDict', 'E2:E%d'%x).value = prdDf.submarket
 '''
 
+
+def calcWght_(dir, allPrd):
+    cur = conn.cursor()
+    import scandir
+
+    for path, subdirs, files in scandir.walk(dir):
+        for fn in files:
+            market,code,x,y = fn.split('.')
+            if market=='HK':
+                code = '0' + code
+            prodId=code + '.' + market
+            if prodId not in globalData.prodMapId.keys():
+                sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+                continue
+            df = pd.read_csv( dir+fn, index_col=['pid', 'date'])
+            df['wght'] = 1
+            df['freeShr'] = 0  # million            # df['totShr'] = 0
+            pWght = 1
+            for d in df.date:
+                wghtC = (c-bonus + pSell*sell)/(1+ sell+ incr + gift)  # 除权除息价＝(股权登记日的收盘价－每股所分红利现金额＋配股价×每股配股数) ÷ (1＋每股送红股数＋每股配股数)
+                wght = c/wghtC
+                
+    
+    allPrd['wght'] = pd.Series(1, allPrd.index)
+    for prd in prdDf.code:
+        pass
+    for prd in allPrdWght.pid:
+        prdWght = allPrdWght
+
+
 t = time.clock()
 allPrd =  pd.DataFrame({})
+allPrdWght =  pd.DataFrame({})
 dfl = []
-for subM in ['SHS', 'SZS', 'SZSC', 'SZSZ']:
+dflWght = []
+for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS']:
     dfl.append( pd.read_csv( r'D:\data\histcsv\ths\%s.csv' % subM, index_col=['pid', 'y', 'm', 'date'], encoding='gbk') )
+    dflWght.append( pd.read_csv( r'D:\data\weightcsv\ql\%s.wght.csv' % subM, index_col=['pid', 'date'], encoding='gbk') )
     break
-allPrd = pd.concat(dfl) #, ignore_index=True)
+allPrd = pd.concat(dfl).sort(ascending=False) #, ignore_index=True)
+allPrdWght = pd.concat(dflWght).sort(ascending=False)
 print('get allPrd time: %.03f' % (time.clock()-t) )
 
+df15y = allPrd.query('y==2015')  # allPrd.xs('000001.SZ',level='pid')
+df15yG = df15y.groupby( level='pid' )
+h15y = df15yG['h'].max()
+h15y.name = 'h15y'
+ih = df15yG['h'].idxmax()  
+splitIdxVal = zip(*ih.values)
+#hd15y = df15y.iloc[ih].date
+#hd15y = pd.Series( ih.get_level_values(3), index=h15y.index)
+#hd15y.name='hd15y'
+#hd15y.index=h15y.index
+grpDf = pd.DataFrame(h15y).join( [ pd.DataFrame( list(splitIdxVal[3]), index=h15y.index ) ] )
+
+#allPrd = df15y
+
+
+def calcWght(dir, allPrd):
+    cur = conn.cursor()
+    import scandir
+
+    allPrd['wght'] = None # pd.Series(1, allPrd.index)
+    allPrd['freeShare'] = None
+    allPrd['totShare'] = None
+    allPrd['p'] = None
+    grped = allPrd.groupby(level=0) #'pid'
+    for pid, group in grped:
+        grp = group.reset_index()
+        p = grp.iloc[grp.index[:-1]+1]['c']
+        #p.iat[-1]=None  #,'c'
+        #allPrd[pid, level=0]
+        allPrd['p'][pid][:-1] = p  # allPrd[:-1, ['p']] = p
+        grp['p'][:-1] = p
+        grp['wght'] = 1 # pd.Series(1, allPrd.index)
+        grp['freeShare'] = None
+        grp['totShare'] = None
+
+        code,market = pid.split('.')
+        dfWght = pd.read_csv( dir+market+'.'+code+'.wght.csv' ).sort(ascending=False).reset_index() #.query('date>20120101') #, index_col=['pid', 'date'])
+        grp = grp.set_index('date')
+        dfWght['p'] = grp.loc[ dfWght['date'].values ]['p'].values
+        grp = grp.reset_index()
+        #dfWght['wght'] = 1
+        #df['freeShr'] = 0  # million            # df['totShr'] = 0
+
+
+        wght = grp['wght'][0]
+        wghtL = []
+        freeShareL = []
+        totShareL = []
+        #free = 0
+        #tot = 0 
+        iGrp = 0
+        for i in dfWght.index: # for dk in grp:
+            #pFree = free #freeShareL += [ grp['freeShare'].iat[ iGrp ] ] * iGrp
+            #pTot = tot #totShareL += [ grp['totShare'].iat[ iGrp ] ] * iGrp
+
+            x, y, date, gift, sell, pSell, bonus, incr, tot, free, p = dfWght.iloc[i]
+            iGrp = grp['date'].index[ grp['date']>=date ]
+            #grp['freeShare'].iat[ iGrp ] = free
+            #grp['totShare'].iat[ iGrp ] = tot
+
+            if len(iGrp)==0:    #  000001.sz 20071231 非交易日 无P
+                continue
+            copyLen = iGrp[-1]-len(wghtL)+1
+            wghtL += [wght] * copyLen
+            freeShareL += [free] * copyLen
+            totShareL += [tot] * copyLen
+            # grp['wght'][i] =  wght
+
+            diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
+            wght = wght * ( p / diviC )
+
+        #grp['wght'] = wghtL
+        #grp['freeShare'] = freeShareL
+        #grp['totShare'] = totShareL
+        allPrd['wght'][pid][:len(wghtL)] = wghtL
+        allPrd['freeShare'][pid][:len(wghtL)] = freeShareL
+        allPrd['totShare'][pid][:len(wghtL)] = totShareL
+        allPrd.to_csv(r"d:\allprd.csv")
+
+    '''
+    pidL = allPrd.index.get_level_values(0).unique()
+    for prd in prdDf.code:
+        pass
+    for prd in allPrdWght.pid:
+        prdWght = allPrdWght
+
+    for path, subdirs, files in scandir.walk(dir):
+        for fn in files:
+            market,code,x,y = fn.split('.')
+            if market=='HK':
+                code = '0' + code
+                #continue
+            prodId=code + '.' + market
+            #if prodId not in globalData.prodMapId.keys():
+            #    sys.stdout.write(  'code not found:' + prodId + '\r\n' )
+            #    continue
+            df = pd.read_csv( dir+fn, index_col=['pid', 'date'])
+            df['wght'] = 1
+            df['freeShr'] = 0  # million            # df['totShr'] = 0
+
+            pWght = 1
+            for d in df.date:
+                wghtC = (c-bonus + pSell*sell)/(1+ sell+ incr + gift)  # 除权除息价＝(股权登记日的收盘价－每股所分红利现金额＋配股价×每股配股数) ÷ (1＋每股送红股数＋每股配股数)
+                wght = c/wghtC
+    '''
+
+
+calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
+allPrd.to_csv('d:\pdtest.csv')
+
 #c930 = allPrd.xs( 20150930, level='date' )
-c930 = allPrd.query( "date==20150930" )
-
-df15 = allPrd[ allPrd['o']==2015 ]
-df15G = df15.groupby( df15['pid'] )
-h15 = df15G['h'].max()
-ih = df15G['h'].idxmax()
-hd15 = df15.iloc[ih]['date']
-
-df10 = allPrd[ allPrd['y']=='2015' and allPrd['m']=='10']
-df10G = df10.groupby( df10['pid'] )
-h10 = df10G['h'].max()
-ih = df10G['h'].idxmax()
-hd10 = df10.iloc[ih]['date']
-
-df1019 = allPrd[ allPrd['y']=='2015' and allPrd['date']>='20151019']
-df1019G = df1019.groupby( df1019['pid'] )
-l1019 = df1019G['l'].min()
-il = df1019G['l'].idxmin()
-ld1019 = df1019.iloc[il]['date']
+df930 = allPrd.query( "date==20150930" )
+# grpDf = pd.DataFrame(grpDf).join( [pd.DataFrame(df930['c'], index=)] )
 
 
+df10m = allPrd.query('y==2015' and 'm==10')
+#df10m = allPrd[ allPrd['y']=='2015' and allPrd['m']=='10']
+df10mG = df10m.groupby( level='pid' )
+h10m = df10mG['h'].max()
+h10m.name = 'h10m'
+ih = df10mG['h'].idxmax()
+hd10m = df10m.iloc[ih]['date']
+hd10m.name='hd10m'
+hd10m.index=h10m.index
+grpDf = pd.DataFrame(grpDf).join( [pd.DataFrame(h10m), pd.DataFrame(hd10m) ] )
+
+
+df1019P = allPrd.query('date>=20151019')
+#df1019P = allPrd[ allPrd['y']=='2015' and allPrd['date']>='20151019']
+df1019PG = df1019P.groupby( level='pid' )
+l1019P = df1019PG['l'].min()
+il = df1019PG['l'].idxmin()
+ld1019P = df1019P.iloc[il]['date']
+ld1019P.name='ld1019P'
+ld1019P.index=l1019P.index
+grpDf = pd.DataFrame(grpDf).join( [pd.DataFrame(l1019P), pd.DataFrame(ld1019P) ] )
+
+
+dfQ3 = allPrd.query('y==2015' and ('m==7' or 'm==8' or 'm==9'))
 #dfQ3 = allPrd[ allPrd['m']=='07' ] + allPrd[ allPrd['m']=='08' ] + allPrd[ allPrd['m']=='09' ] 
-dfQ3 = allPrd[ allPrd['m']=='07' or allPrd['m']=='08' or allPrd['m']=='09' ] 
-dfQ3G = dfQ3.groupby( dfQ3['pid'] )
+#dfQ3 = allPrd[ allPrd['m']=='07' or allPrd['m']=='08' or allPrd['m']=='09' ] 
+dfQ3G = dfQ3.groupby( level='pid' )
 lQ3 = dfQ3G['l'].min()
 il = dfQ3G['l'].idxmin()
 ldQ3 = dfQ3.iloc[il]['date']
+ldQ3.name='ldQ3'
+ldQ3.index=lQ3.index
+grpDf = pd.DataFrame(grpDf).join( [pd.DataFrame(lQ3), pd.DataFrame(ldQ3) ] )
+
 
 pass
 
-def groupK(dfD, fld):  # conn, 
-    t = time.clock()
-    grouped = dfD.groupby([dfD['product_id'], dfD['year'], dfD[fld]])
-    h=grouped['h'].max()
-    l=grouped['l'].min()
-    o=grouped['o'].first()
-    p=grouped['p'].first()
-    c=grouped['c'].last()
-    vol=grouped['vol'].sum()
-    startD=grouped['date'].min()
-    ih=grouped['h'].idxmax()
-    hD=dfD.iloc[ih]['date']
-    hD.name='hDate'
-    hD.index=o.index
-    il=grouped['l'].idxmin()
-    lD=dfD.iloc[il]['date']
-    lD.name='lDate'
-    lD.index=o.index
-    #dfM = pd.merge( pd.DataFrame(startD), pd.DataFrame(o), on=['product_id', 'year', fld] )
-    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(p), pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD), pd.DataFrame(vol) ] )
-    print('group month time: %.03f' % (time.clock()-t) )
-    return rsltDf
 
 #cur.executemany( 'insert into myapp_product(source, code, type, market, name, submarket, masksite) values("dzh", ?, "", ?, ?, ?, ".") ', recLst )
 #conn.commit()
