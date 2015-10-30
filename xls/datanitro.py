@@ -123,57 +123,68 @@ def calcWght(dir, allPrd):
     for pid, group in grped:
         grp = group.reset_index()
         p = grp.iloc[grp.index[:-1]+1]['c']
+        p[len(p)+1] = None
+        p.index = grp.index
         #p.iat[-1]=None  #,'c'
         #allPrd[pid, level=0]
-        allPrd['p'][pid][:-1] = p  # allPrd[:-1, ['p']] = p
-        grp['p'][:-1] = p
+        allPrd['p'][pid]=p   #[:-1] = p  # allPrd[:-1, ['p']] = p
+        grp['p'] = p # [:-1] = p
         grp['wght'] = 1 # pd.Series(1, allPrd.index)
         grp['freeShare'] = None
         grp['totShare'] = None
 
         code,market = pid.split('.')
-        dfWght = pd.read_csv( dir+market+'.'+code+'.wght.csv' ).sort(ascending=False).reset_index() #.query('date>20120101') #, index_col=['pid', 'date'])
-        grp = grp.set_index('date')
-        dfWght['p'] = grp.loc[ dfWght['date'].values ]['p'].values
-        grp = grp.reset_index()
-        #dfWght['wght'] = 1
-        #df['freeShr'] = 0  # million            # df['totShr'] = 0
+        fPath = dir+market+'.'+code+'.wght.csv'
+        if os.path.exists(fPath):
+            dfWght = pd.read_csv( fPath ).sort(ascending=False).reset_index() #.query('date>20120101') #, index_col=['pid', 'date'])
+            # grp = grp.set_index('date')            dfWght['p'] = grp.loc[ dfWght['date'].values ]['p'].values            grp = grp.reset_index()
+            #dfWght['wght'] = 1
+            #df['freeShr'] = 0  # million            # df['totShr'] = 0
+        
+            wght = grp['wght'][0]
+            wghtL = []
+            freeShareL = []
+            totShareL = []
+            #free = 0
+            #tot = 0 
+            iGrp = 0
+            for i in dfWght.index: # for dk in grp:
+                #pFree = free #freeShareL += [ grp['freeShare'].iat[ iGrp ] ] * iGrp
+                #pTot = tot #totShareL += [ grp['totShare'].iat[ iGrp ] ] * iGrp
+    
+                x, y, date, gift, sell, pSell, bonus, incr, tot, free = dfWght.iloc[i] #, p = dfWght.iloc[i]
+                if (grp['date'].tail(1)>=date).values[0]:
+                    break
+                iGrp = grp['date'].index[ grp['date']>=date ]
+                #grp['freeShare'].iat[ iGrp ] = free
+                #grp['totShare'].iat[ iGrp ] = tot
+    
+                if len(iGrp)==0:    #  000001.sz 20071231 非交易日 无P
+                    continue
+                copyLen = iGrp[-1]-len(wghtL)+1
+                p = grp['p'][ iGrp[-1] ]
+                wghtL += [wght] * copyLen
+                freeShareL += [free] * copyLen
+                totShareL += [tot] * copyLen
+                # grp['wght'][i] =  wght
+    
+                diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
+                wght = wght * ( p / diviC )
 
-
-        wght = grp['wght'][0]
-        wghtL = []
-        freeShareL = []
-        totShareL = []
-        #free = 0
-        #tot = 0 
-        iGrp = 0
-        for i in dfWght.index: # for dk in grp:
-            #pFree = free #freeShareL += [ grp['freeShare'].iat[ iGrp ] ] * iGrp
-            #pTot = tot #totShareL += [ grp['totShare'].iat[ iGrp ] ] * iGrp
-
-            x, y, date, gift, sell, pSell, bonus, incr, tot, free, p = dfWght.iloc[i]
-            iGrp = grp['date'].index[ grp['date']>=date ]
-            #grp['freeShare'].iat[ iGrp ] = free
-            #grp['totShare'].iat[ iGrp ] = tot
-
-            if len(iGrp)==0:    #  000001.sz 20071231 非交易日 无P
-                continue
-            copyLen = iGrp[-1]-len(wghtL)+1
+            copyLen = len(grp) - len(wghtL)
             wghtL += [wght] * copyLen
             freeShareL += [free] * copyLen
             totShareL += [tot] * copyLen
             # grp['wght'][i] =  wght
-
-            diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
-            wght = wght * ( p / diviC )
-
-        #grp['wght'] = wghtL
-        #grp['freeShare'] = freeShareL
-        #grp['totShare'] = totShareL
-        allPrd['wght'][pid][:len(wghtL)] = wghtL
-        allPrd['freeShare'][pid][:len(wghtL)] = freeShareL
-        allPrd['totShare'][pid][:len(wghtL)] = totShareL
-        allPrd.to_csv(r"d:\allprd.csv")
+    
+    
+            #grp['wght'] = wghtL
+            #grp['freeShare'] = freeShareL
+            #grp['totShare'] = totShareL
+            allPrd['wght'][pid] = wghtL  #[:len(wghtL)] = wghtL
+            allPrd['freeShare'][pid] = freeShareL  #[:len(wghtL)] = freeShareL
+            allPrd['totShare'][pid] = totShareL  #[:len(wghtL)] = totShareL
+            #allPrd.to_csv(r"d:\allprd1.csv")
 
     '''
     pidL = allPrd.index.get_level_values(0).unique()

@@ -588,8 +588,8 @@ getQLData2OneFile( conn )
 #arrangeCsvScan(r'D:\data\histcsv\ths')
 
 t = time.clock()
-#getTHSData( conn )
 getTHSData2OneFile( conn )
+getTHSData( conn )
 print('getTHSData time: %.03f' % (time.clock()-t) )
 
 
