@@ -443,7 +443,7 @@ def preTreatment(conn):
 
 
 
-def groupK(fn, fld):  # conn, 
+def groupK_(fn, fld):  # conn, 
     t = time.clock()
     #dfD = pd.read_sql_query('select * from myapp_kDaily_cns_tmp where product_id = 8838 ', conn)
     #dfD = pd.read_sql_query('select product_id,date,p,o,h,l,c,vol,year,month,week from myapp_kDaily_cns_tmp', conn)
@@ -453,6 +453,32 @@ def groupK(fn, fld):  # conn,
     
     t = time.clock()
     grouped = dfD.groupby([dfD['product_id'], dfD['year'], dfD[fld]])
+    h=grouped['h'].max()
+    l=grouped['l'].min()
+    o=grouped['o'].first()
+    p=grouped['p'].first()
+    c=grouped['c'].last()
+    vol=grouped['vol'].sum()
+    startD=grouped['date'].min()
+    ih=grouped['h'].idxmax()
+    hD=dfD.iloc[ih]['date']
+    hD.name='hDate'
+    hD.index=o.index
+    il=grouped['l'].idxmin()
+    lD=dfD.iloc[il]['date']
+    lD.name='lDate'
+    lD.index=o.index
+    #dfM = pd.merge( pd.DataFrame(startD), pd.DataFrame(o), on=['product_id', 'year', fld] )
+    rsltDf = pd.DataFrame(startD).join( [pd.DataFrame(p), pd.DataFrame(o), pd.DataFrame(h), pd.DataFrame(l), pd.DataFrame(c), pd.DataFrame(hD), pd.DataFrame(lD), pd.DataFrame(vol) ] )
+    print('group month time: %.03f' % (time.clock()-t) )
+    return rsltDf
+
+def groupK(dfD, fldL):  # conn, 
+    t = time.clock()
+    if len(fldL)<>3:
+        sys.stdout.write(  'group fields number is not 3'  + '\r\n' )
+        return
+    grouped = dfD.groupby([dfD[fldL[0]], dfD[fldL[1]], dfD[fldL[2]]])
     h=grouped['h'].max()
     l=grouped['l'].min()
     o=grouped['o'].first()
@@ -521,39 +547,46 @@ statement =" select * from myapp_kdaily_hks into outfile 'myapp_kdaily_hks_tmp.c
 cur.execute( statement )
 '''
 
-def group():
+def group1(fn, grpFldLst):
+    dfD = pd.read_csv( fn )
+
+    fnOut = os.path.basename(fn).split('.')[0]
+
+    df = groupK(dfD, grpFldLst) #connHis, 
+    df.to_csv('D:\\data\\csvCalc\\%s_k%s.csv' % (fnOut, grpFldLst[-1]), encoding='utf-8', index=True)
+
+group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
+
+def group(fn):
     t = time.clock()
-    dfW = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'week') #connHis, 
+    #dfD = pd.read_sql_query('select * from myapp_kDaily_cns_tmp where product_id = 8838 ', conn)
+    #dfD = pd.read_sql_query('select product_id,date,p,o,h,l,c,vol,year,month,week from myapp_kDaily_cns_tmp', conn)
+    dfD = pd.read_csv( fn )
+    #dfD = pd.read_csv( r'C:\Users\Administrator\Desktop\myapp_kdaily_hks_tmp.csv' )
+    print('read_sql_query time: %.03f' % (time.clock()-t) )
+
+    fnOut = os.path.basename(fn).split('.')[0]
+
+    wGrpFldLst = ['product_id', 'year', 'week']
+    mGrpFldLst = ['product_id', 'year', 'month']
+
+    t = time.clock()
+    dfW = groupK(dfD, wGrpFldLst) #connHis, 
     print('groupK time: %.03f' % (time.clock()-t) )
     t = time.clock()
     #dfW.to_sql('myapp_kweek', connHis, if_exists='append')
-    dfW.to_csv('myapp_cns_kweek.csv', encoding='utf-8', index=True)
+    dfW.to_csv('D:\\data\\csvCalc\\%s_kweek.csv' % fnOut, encoding='utf-8', index=True)
     print('to_sql time: %.03f' % (time.clock()-t) )
     
-    dfM = groupK(r'd:\myapp_kdaily_cns_tmp.csv', 'month')  #connHis, 
+    dfM = groupK(dfD, mGrpFldLst)  #connHis, 
     t = time.clock()
     #dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
-    dfM.to_csv('myapp_cns_kmonth.csv', encoding='utf-8', index=True)
-    print('to_sql time: %.03f' % (time.clock()-t) )
-    
-    
-    t = time.clock()
-    dfW = groupK(r'd:\myapp_kdaily_hks_tmp.csv', 'week') #connHis, 
-    print('groupK time: %.03f' % (time.clock()-t) )
-    t = time.clock()
-    #dfW.to_sql('myapp_kweek', connHis, if_exists='append')
-    dfW.to_csv('myapp_hks_kweek.csv', encoding='utf-8', index=True)
-    print('to_sql time: %.03f' % (time.clock()-t) )
-    
-    dfM = groupK(r'd:\myapp_kdaily_hks_tmp.csv', 'month')  #connHis, 
-    t = time.clock()
-    #dfM.to_sql('myapp_kmonth', connHis, if_exists='append')
-    dfM.to_csv('myapp_hks_kmonth.csv', encoding='utf-8', index=True)
+    dfM.to_csv('D:\\data\\csvCalc\\%s_kmonth.csv' % fnOut, encoding='utf-8', index=True)
     print('to_sql time: %.03f' % (time.clock()-t) )
 
 
-
-#group()
+group( r'd:\myapp_kdaily_cns_tmp.csv' )
+group( r'd:\myapp_kdaily_hks_tmp.csv' )
 
 
 t = time.clock()

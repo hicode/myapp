@@ -11,24 +11,6 @@ from net.website.django.mysite1.myapp.models import TradeRealTime
 from xlwt.Utils import cellrange_to_rowcol_pair
 '''
 
-wtchL = getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
-wtchLAll = getWatchLst_ThsExport(r'D:\data\ths\zixuan.txt')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan2')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan3')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan4')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan5')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan6')
-wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan7')
-wtchLAll = list(set(wtchL))
-
-t = time.clock()
-allPrd =  pd.read_csv( r'D:\pdA.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
-print('read allPrd csv time: %.03f' % (time.clock()-t) )
-
-
-allPrd = allPrd.query('y==2015') # or y==2014 or y==2013 or y==2012')  # allPrd.xs('000001.SZ',level='pid')
-
 
 def getEastPrdLst():
     prdLst = []
@@ -64,17 +46,6 @@ def getEastPrdLst():
     
     prdDf = pd.DataFrame( d )
     return prdDf
-
-prdDf = getEastPrdLst()
-x=len(prdDf.code)+1
-
-'''
-CellRange('prodDict', 'A2:A%d'%x).value = prdDf.index
-CellRange('prodDict', 'B2:B%d'%x).value = prdDf.name
-CellRange('prodDict', 'C2:C%d'%x).value = prdDf.code
-CellRange('prodDict', 'D2:D%d'%x).value = prdDf.market
-CellRange('prodDict', 'E2:E%d'%x).value = prdDf.submarket
-'''
 
 
 def calcWght_(dir, allPrd):
@@ -120,24 +91,8 @@ def readHistCsv():
     allPrd = pd.concat(dfl).sort(ascending=False) #, ignore_index=True)
     allPrdWght = pd.concat(dflWght).sort(ascending=False)
     print('get allPrd time: %.03f' % (time.clock()-t) )
+
     return allPrd
-
-allPrd = readHistCsv()
-
-df15y = allPrd.query('y==2015')  # allPrd.xs('000001.SZ',level='pid')
-df15yG = df15y.groupby( level='pid' )
-h15y = df15yG['h'].max()
-h15y.name = 'h15y'
-ih = df15yG['h'].idxmax()  
-splitIdxVal = zip(*ih.values)
-#hd15y = df15y.iloc[ih].date
-#hd15y = pd.Series( ih.get_level_values(3), index=h15y.index)
-#hd15y.name='hd15y'
-#hd15y.index=h15y.index
-grpDf = pd.DataFrame(h15y).join( [ pd.DataFrame( list(splitIdxVal[3]), index=h15y.index ) ] )
-
-#allPrd = df15y
-
 
 def calcWght(dir, allPrd):
     cur = conn.cursor()
@@ -212,7 +167,17 @@ def calcWght(dir, allPrd):
             allPrd['wght'][pid] = wghtL  #[:len(wghtL)] = wghtL
             allPrd['freeShare'][pid] = freeShareL  #[:len(wghtL)] = freeShareL
             allPrd['totShare'][pid] = totShareL  #[:len(wghtL)] = totShareL
-            #allPrd.to_csv(r"d:\allprd1.csv")
+            #allPrd.to_csv(r"D:\data\csvCalc\allprd1.csv")
+
+
+    allPrd_divi = allPrd.copy()
+    allPrd_divi['o'] = allPrd['o']/allPrd['wght']
+    allPrd_divi['h'] = allPrd['h']/allPrd['wght']
+    allPrd_divi['l'] = allPrd['l']/allPrd['wght']
+    allPrd_divi['c'] = allPrd['c']/allPrd['wght']
+    allPrd_divi['p'] = allPrd['p']/allPrd['wght']
+
+    return allPrd, allPrd_divi
 
     '''
     pidL = allPrd.index.get_level_values(0).unique()
@@ -242,8 +207,75 @@ def calcWght(dir, allPrd):
     '''
 
 
-calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
-allPrd.to_csv('d:\pdtest.csv')
+
+wtchL = getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
+wtchLAll = getWatchLst_ThsExport(r'D:\data\ths\zixuan.txt')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan2')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan3')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan4')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan5')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan6')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan7')
+wtchLAll = list(set(wtchL))
+
+t = time.clock()
+allPrd =  pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+#allPrd = readHistCsv()
+#allPrd, allPrd_divi = calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
+#allPrd.to_csv('D:\data\csvCalc\pdA.csv')
+#allPrd_divi.to_csv('D:\data\csvCalc\pdA_divi.csv')
+print('read allPrd csv time: %.03f' % (time.clock()-t) )
+
+prdDf = getEastPrdLst()
+x=len(prdDf.code)+1
+
+'''
+CellRange('prodDict', 'A2:A%d'%x).value = prdDf.index
+CellRange('prodDict', 'B2:B%d'%x).value = prdDf.name
+CellRange('prodDict', 'C2:C%d'%x).value = prdDf.code
+CellRange('prodDict', 'D2:D%d'%x).value = prdDf.market
+CellRange('prodDict', 'E2:E%d'%x).value = prdDf.submarket
+'''
+
+allPrd = allPrd.query('y==2015 or y==2014') # or y==2013 or y==2012')  # allPrd.xs('000001.SZ',level='pid')
+
+
+
+dfmG = allPrd.groupby( level=['pid','y','m'] )
+h15y = df15yG['h'].max()
+h15y.name = 'h15y'
+ih = df15yG['h'].idxmax()  
+splitIdxVal = zip(*ih.values)
+#hd15y = df15y.iloc[ih].date
+#hd15y = pd.Series( ih.get_level_values(3), index=h15y.index)
+#hd15y.name='hd15y'
+#hd15y.index=h15y.index
+grpDf = pd.DataFrame(h15y).join( [ pd.DataFrame( list(splitIdxVal[3]), index=h15y.index ) ] )
+
+
+
+
+
+
+h15 lPost  hPost at930 l1019P h10m
+
+
+
+
+
+df15y = allPrd.query('y==2015')  # allPrd.xs('000001.SZ',level='pid')
+df15yG = df15y.groupby( level='pid' )
+h15y = df15yG['h'].max()
+h15y.name = 'h15y'
+ih = df15yG['h'].idxmax()  
+splitIdxVal = zip(*ih.values)
+#hd15y = df15y.iloc[ih].date
+#hd15y = pd.Series( ih.get_level_values(3), index=h15y.index)
+#hd15y.name='hd15y'
+#hd15y.index=h15y.index
+grpDf = pd.DataFrame(h15y).join( [ pd.DataFrame( list(splitIdxVal[3]), index=h15y.index ) ] )
+
 
 #c930 = allPrd.xs( 20150930, level='date' )
 df930 = allPrd.query( "date==20150930" )
