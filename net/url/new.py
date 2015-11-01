@@ -475,7 +475,7 @@ def groupK(fn, fld):  # conn,
 
 
 
-#getWatchLst(r'D:\data\ths\export.txt')
+#getWatchLst_ThsExport(r'D:\data\ths\export.txt')
 #create view watchl as select code,name,market,watchreason from myapp_product, myapp_watchlist where myapp_watchlist.product_id=myapp_product.id 
 
 fnLst = ['D:\data\codeBook\SH150926.SNT', 'D:\data\codeBook\SZ150926.SNT', 'D:\data\codeBook\HK150926.SNT', 'D:\data\codeBook\HI150926.SNT']

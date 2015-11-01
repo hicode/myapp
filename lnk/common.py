@@ -158,6 +158,61 @@ def copyDiskDb2Memo():
     kM = KMin.objects.all()
     w = WatchList.objects.all()
 
+def getWatchLst_ThsExport(fn):
+    try:
+        with open( fn ) as fp:  # HTTP Error 404: Not Found
+            rslt = fp.readlines()
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    wtchL = []
+    for ln in rslt[1:]:
+        flds = ln.split('\t')
+        if flds[0].isdigit():
+            market = 'HK'
+            code = flds[0]
+        else:
+            market = flds[0][:2]
+            code = flds[0][2:]
+        if market not in [ 'SZ', 'SH' ]: #, 'HK' ]:
+            continue
+
+        submarket = Submarket(market, code)
+        if submarket=='' or submarket[2] <> 'S':
+            continue
+
+        wtchL.append( code+'.'+market )
+    return wtchL
+    '''
+        p = Product.objects.get( code=code, market=market )
+        if p==None:
+            sys.stdout.write(  'product not found:' + code + '.' + market + '\r\n' )
+            continue
+        pWatch = WatchList(product=p, watchReason='')
+        pWatch.save()
+    '''
+    #for prod in SSEProdLst:
+    #    getAStockRealtime()
+
+# watchLst: prodCode market
+
+
+def getDzhCodeLst(fn, market):
+    try:
+        with open( fn ) as fp:  
+            lines = fp.readlines()
+    except IOError, e:
+        sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
+        return ''
+    recLst = []
+    for ln in lines[2:]:
+        fLst = ln.strip().split('\t')
+        #recLst.append( [p.id] + fLst[2:] )
+        p=Product(source='dzh', code=fLst[0], type='', market=market, name=fLst[1].decode('GBK'), submarket = Submarket(market, fLst[0]), maskSite='.' )   #, bDataHist=False
+        recLst.append(p)
+    Product.objects.bulk_create( recLst )
+
+
 '''
 t = time.clock()
 #useMemDb()

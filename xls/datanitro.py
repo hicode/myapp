@@ -11,40 +11,63 @@ from net.website.django.mysite1.myapp.models import TradeRealTime
 from xlwt.Utils import cellrange_to_rowcol_pair
 '''
 
+wtchL = getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
+wtchLAll = getWatchLst_ThsExport(r'D:\data\ths\zixuan.txt')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan2')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan3')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan4')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan5')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan6')
+wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan7')
+wtchLAll = list(set(wtchL))
 
-prdLst = []
-with open(r'd:\east.txt') as fp:
-#with open(r'd:\dzhEastPrdLst.txt') as fp:
-    prdLst = fp.readlines()
+t = time.clock()
+allPrd =  pd.read_csv( r'D:\pdA.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+print('read allPrd csv time: %.03f' % (time.clock()-t) )
 
-prdDict = {}
-colCode = []
-colName = []
-colMarket = []
-colSubmarket = []
-colId = []
-#rowNum = 1
-recLst = []
-for prd in prdLst[1:]:
-    flds = prd.strip().split('\t')
-    colId.append( flds[0] )
-    colName.append( flds[1].decode('GBK') )
-    colCode.append( flds[2] )
-    colMarket.append( flds[3] )
-    colSubmarket.append( Submarket(flds[3], flds[2]) )
-    #prdDict[ flds[0] ] = flds
-    #recLst.append( [ flds[2], flds[3], flds[1].decode('GBK'), Submarket(flds[3], flds[2]) ] )
-    #rowNum += 1
-    #CellRange( 'prodDict', 'A%d:D%d'%(rowNum, rowNum) ).value = prdDict[ flds[0] ]
 
-d={'name': pd.Series(colName, index=colId),
-   'code': pd.Series(colCode, index=colId),
-   'market': pd.Series(colMarket, index=colId),
-   'submarket': pd.Series(colSubmarket, index=colId),
-   }
+allPrd = allPrd.query('y==2015') # or y==2014 or y==2013 or y==2012')  # allPrd.xs('000001.SZ',level='pid')
 
-prdDf = pd.DataFrame( d )
+
+def getEastPrdLst():
+    prdLst = []
+    with open(r'd:\east.txt') as fp:
+    #with open(r'd:\dzhEastPrdLst.txt') as fp:
+        prdLst = fp.readlines()
+    
+    prdDict = {}
+    colCode = []
+    colName = []
+    colMarket = []
+    colSubmarket = []
+    colId = []
+    #rowNum = 1
+    recLst = []
+    for prd in prdLst[1:]:
+        flds = prd.strip().split('\t')
+        colId.append( flds[0] )
+        colName.append( flds[1].decode('GBK') )
+        colCode.append( flds[2] )
+        colMarket.append( flds[3] )
+        colSubmarket.append( Submarket(flds[3], flds[2]) )
+        #prdDict[ flds[0] ] = flds
+        #recLst.append( [ flds[2], flds[3], flds[1].decode('GBK'), Submarket(flds[3], flds[2]) ] )
+        #rowNum += 1
+        #CellRange( 'prodDict', 'A%d:D%d'%(rowNum, rowNum) ).value = prdDict[ flds[0] ]
+    
+    d={'name': pd.Series(colName, index=colId),
+       'code': pd.Series(colCode, index=colId),
+       'market': pd.Series(colMarket, index=colId),
+       'submarket': pd.Series(colSubmarket, index=colId),
+       }
+    
+    prdDf = pd.DataFrame( d )
+    return prdDf
+
+prdDf = getEastPrdLst()
 x=len(prdDf.code)+1
+
 '''
 CellRange('prodDict', 'A2:A%d'%x).value = prdDf.index
 CellRange('prodDict', 'B2:B%d'%x).value = prdDf.name
@@ -83,18 +106,23 @@ def calcWght_(dir, allPrd):
         prdWght = allPrdWght
 
 
-t = time.clock()
-allPrd =  pd.DataFrame({})
-allPrdWght =  pd.DataFrame({})
-dfl = []
-dflWght = []
-for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS']:
-    dfl.append( pd.read_csv( r'D:\data\histcsv\ths\%s.csv' % subM, index_col=['pid', 'y', 'm', 'date'], encoding='gbk') )
-    dflWght.append( pd.read_csv( r'D:\data\weightcsv\ql\%s.wght.csv' % subM, index_col=['pid', 'date'], encoding='gbk') )
-    break
-allPrd = pd.concat(dfl).sort(ascending=False) #, ignore_index=True)
-allPrdWght = pd.concat(dflWght).sort(ascending=False)
-print('get allPrd time: %.03f' % (time.clock()-t) )
+def readHistCsv():
+    t = time.clock()
+    allPrd =  pd.DataFrame({})
+    allPrdWght =  pd.DataFrame({})
+    dfl = []
+    dflWght = []
+    for subM in [ 'HKS', 'HKSC' ]:
+    #for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB' ]:
+    #for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB', 'HKS', 'HKSC' ]:
+        dfl.append( pd.read_csv( r'D:\data\histcsv\ths\%s.csv' % subM, index_col=['pid', 'y', 'm', 'date'], encoding='gbk') )
+        dflWght.append( pd.read_csv( r'D:\data\weightcsv\ql\%s.wght.csv' % subM, index_col=['pid', 'date'], encoding='gbk') )
+    allPrd = pd.concat(dfl).sort(ascending=False) #, ignore_index=True)
+    allPrdWght = pd.concat(dflWght).sort(ascending=False)
+    print('get allPrd time: %.03f' % (time.clock()-t) )
+    return allPrd
+
+allPrd = readHistCsv()
 
 df15y = allPrd.query('y==2015')  # allPrd.xs('000001.SZ',level='pid')
 df15yG = df15y.groupby( level='pid' )
@@ -155,21 +183,21 @@ def calcWght(dir, allPrd):
                 x, y, date, gift, sell, pSell, bonus, incr, tot, free = dfWght.iloc[i] #, p = dfWght.iloc[i]
                 if (grp['date'].tail(1)>=date).values[0]:
                     break
-                iGrp = grp['date'].index[ grp['date']>=date ]
+                iGrp = grp['date'].index[ grp['date']<date ]
                 #grp['freeShare'].iat[ iGrp ] = free
                 #grp['totShare'].iat[ iGrp ] = tot
     
                 if len(iGrp)==0:    #  000001.sz 20071231 非交易日 无P
                     continue
-                copyLen = iGrp[-1]-len(wghtL)+1
-                p = grp['p'][ iGrp[-1] ]
+                copyLen = iGrp[0]-len(wghtL)
+                c = grp['c'][ iGrp[0] ]  # p = grp['p'][ iGrp[0] ]
                 wghtL += [wght] * copyLen
                 freeShareL += [free] * copyLen
                 totShareL += [tot] * copyLen
                 # grp['wght'][i] =  wght
     
-                diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
-                wght = wght * ( p / diviC )
+                diviC = (c - bonus + pSell*sell) / (1 + sell + incr + gift)  #diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
+                wght = wght * ( c / diviC )  # wght = wght * ( p / diviC )
 
             copyLen = len(grp) - len(wghtL)
             wghtL += [wght] * copyLen

@@ -471,6 +471,7 @@ if __name__ == '__main__':
     # 纽约证券交易所指数、标准普尔指数、深圳证券交易所和上海证券交易所，其他数据都会有15分钟
     # 至一个交易日不等的延时。之前，雅虎财经也将纳斯达克市场的指数升级为实时数据。
 
+    '''
     urllink = urllib.urlopen( 'http://www.google.cn/finance/historical?q=SHA:000001' )
     data = urllink.read()
     urllink.close()
@@ -485,10 +486,16 @@ if __name__ == '__main__':
     #VosTool.waitWin( hyTitle, 10 )
     hyPath = r'C:\Program Files\HY Trader\terminal.exe' #"C:\Program Files\licai18\BootLoad.exe"
     VosTool.launch( hyPath, 30, hyTitle )
+    '''
 
     ###########################################################################
     #auto launch data client
     wsh = win32com.client.Dispatch( "Wscript.Shell" )
+
+    for i in range(10000):
+        time.sleep(1)
+        wsh.SendKeys( "{PGDN}" )
+
     wsh.run( r'C:\new_gdzq_l2\TdxW.exe' )
     time.sleep( 3 )
     if False == wsh.AppActivate( '光大证券level2插件版' ):
