@@ -475,12 +475,16 @@ def groupK_(fn, fld):  # conn,
 
 def groupK(dfD, fldL):  # conn, 
     t = time.clock()
-    if len(fldL)<>3:
-        sys.stdout.write(  'group fields number is not 3'  + '\r\n' )
+    if len(fldL)==3:
+        grouped = dfD.groupby( [ dfD[fldL[0]], dfD[fldL[1]], dfD[fldL[2]] ] )
+    elif len(fldL)==2:
+        grouped = dfD.groupby( [ dfD[fldL[0]], dfD[fldL[1]] ] )
+    else:
+        sys.stdout.write(  'group fields number is neither 3 nor 2'  + '\r\n' )
         return
-    grouped = dfD.groupby([dfD[fldL[0]], dfD[fldL[1]], dfD[fldL[2]]])
     h=grouped['h'].max()
     l=grouped['l'].min()
+    #if dfD['pid'].first() < dfD['pid'].last():
     o=grouped['o'].first()
     p=grouped['p'].first()
     c=grouped['c'].last()
@@ -548,7 +552,7 @@ cur.execute( statement )
 '''
 
 def group1(fn, grpFldLst):
-    dfD = pd.read_csv( fn )
+    dfD = pd.read_csv( fn, index_col=['pid', 'date'] ).sort().reset_index()
 
     fnOut = os.path.basename(fn).split('.')[0]
 
@@ -556,6 +560,7 @@ def group1(fn, grpFldLst):
     df.to_csv('D:\\data\\csvCalc\\%s_k%s.csv' % (fnOut, grpFldLst[-1]), encoding='utf-8', index=True)
 
 group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
+group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y'] )
 
 def group(fn):
     t = time.clock()

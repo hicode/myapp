@@ -1,10 +1,13 @@
 # coding=utf-8
-import sys
-import time
+
+from common import *
+
+#import sys
+#import time
 #from codetools.util.cbook import unique
-from pandas.core.common import notnull
-from django.db.models.lookups import IsNull
-sys.path.append(r"D:\ssd-e-bak\new\ali\dor\bak sure\s\good\MBSC-Upgrade")
+#from pandas.core.common import notnull
+#from django.db.models.lookups import IsNull
+#sys.path.append(r"D:\ssd-e-bak\new\ali\dor\bak sure\s\good\MBSC-Upgrade")
 
 #from autoTest import VosTool
 #fLst = VosTool.getFileLst(        r'C:\new_tdx\vipdoc\sh\lday', '', False )
@@ -81,7 +84,7 @@ def getDzhTickData(conn):
             cur.executemany( "insert into %s(product_id, date, bonus, giftStck, incrStck, sellStck, p4SellStck, freeStck, totalStck)" % tblName + " values (?,?,?,?,?,?,?,?,?)", recLst )
             conn.commit()
 
-getDzhTickData(1)
+#getDzhTickData(1)
 #'''
 
 
@@ -384,84 +387,8 @@ cnx.close()
 def db_Csv():
     pass
 
-'''
-#def getTrend(dfM):
-trendDict = {}
-for prod in dfM['product_id']:
-    pK=dfM[prod][0]
-    trRec = initTrend( dfM[prod].k0 ) 
-    trendDict[prod] = trRec
-    sureTr = trRec[0]  # latest sure trend
-    newTr = trRec[0]  # newTr is latest trend, newTr may be not sure, i.e., it is may dead and become a period of sureTr. 
-    # newTr == sureTr means max distance is continue increasing and no withdraw until latest day.   i.e., l or h of today is new max distance
-    for k in dfM[prod][1:]:
-        if newTr.sure == False:
-            if newTr.up ==  False: # fall recent
-                if k.h > sureTr.h:  # newTr dead, previous trend (sureTr) continue to grow
-                    sureTr.h = k.h
-                    newTr = sureTr
-                    trRec.delete(-1)
-                    continue
-                elif k.l < newTr.l:
-                    newTr.l = k.l
-                    newTr.endDate = k.date
-            else:                # up trend
-                if k.l < sureTr.l:  # newTr dead, previous trend (sureTr) continue to grow
-                    sureTr.l = k.l
-                    newTr = sureTr
-                    trRec.delete(-1)
-                    continue
-                elif k.h > newTr.h:
-                    newTr.h = k.h
-                    newTr.endDate = k.date
-            if ( (newTr.h-newTr.l) / newTr.l > 1.5 ) or ( newTr.endDate - newTr.date > 3mon and (newTr.h-newTr.l) / newTr.l > 1.25):  # newTr become sure after enough space and space/time:
-                sureTr.close=True
-                sureTr.endDate = k.date
-                newTr.status = 'sure'
-                sureTr = newTr
-        else:  
-            if newTr.up ==  False: # fall recent
-                if k.l < newTr.l:
-                    newTr.l = k.l
-                    newTr.endDate = k.date
-                if k.c > k.p:
-                    newTr = newTrend(newTr, k0) # newTr is the same with sureTr before call return
-                    trRec.append( newTr )
-            else:                # up trend
-                if k.h > newTr.h:
-                    newTr.h = k.h
-                    newTr.endDate = k.date
-                if k.c < k.p:
-                    newTr = newTrend(newTr, k0) # newTr is the same with sureTr before call return
-                    trRec.append( newTr )
-'''
 
-def newTrend(curTrend, K):
-    newTr={}
-    newTr.sure = False
-    newTr.date = curTrend.endDate ## ?? k.date
-    newTr.up = not curTrend.up
-    if curTrend.up == False:
-        if K.l < curTrend.l :
-            pass
 
-def initTrend(k0):
-    #1st trend ::              trendDict[prod].append( {Up:'', startD:'', startV:'', endV:'', status:'close'} )  # pTrend    curTrend   IPO Price
-    trRec = []
-    firstTr={'up':'', 'h':k0.h, 'l':k0.l, 'date':k0.date, 'c':k0.c, 'status':'sure'}
-    # def first trend Up according to o/c price of first K 
-    if IsNull( k0.p ):   # have IPO price
-      if k0.c>k0.o:     # no change means Up         Up=True
-          pass
-      else:
-          Up=False
-    else:
-      if k0.c>k0.p:     # no change means fall  
-          Up=True
-      else:
-          Up=False
-    firstTr['up'] = Up
-    return trRec.append( firstTr )
 '''
 create view tmp as select product_id, count(*) num from myapp_kdaily_cns group by product_id
 delete from myapp_kdaily_cns where product_id in (select product_id from tmp where num<5)

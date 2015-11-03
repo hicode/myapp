@@ -268,121 +268,101 @@ allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdA_divi_ky.csv', index_col=['pid', 'y
 print('read allPrd csv time: %.03f' % (time.clock()-t) )
 
 
+
 def newTrend(curTr, k):
-    newTr = {}
-    newTr = {'up':not curTr['up'], 'h':None, 'l':None, 'bD':curTr['eD'], 'eD':None, 'c':k.c, 'bornStat':True, 'pTr':curTr}
+    newTr={}
+    newTr={'up':not curTr['up'], 'h':None, 'l':None, 'bD':curTr['eD'], 'eD':k.date, 'c':k.c, 'bornStat':True}
     #newTr.sure = False
     #newTr.date = curTrend.endDate ## ?? k.date
     #newTr.up = not curTrend.up
     if curTr['up'] == True:
         newTr['h'] = curTr['h']
         newTr['l'] = k.l
-        newTr['eD'] = k.lDate
     else:
         newTr['l'] = curTr['l']
         newTr['h'] = k.h
-        newTr['eD'] = k.hDate
         #if K.l < curTrend.l :
         #    pass
+
     return newTr
 
 def initTrend(k0):
     #1st trend ::              trendDict[prod].append( {Up:'', startD:'', startV:'', endV:'', bornStat:'close'} )  # pTrend    curTrend   IPO Price
     trRec = []
-    firstTr={'up':None, 'h':k0.h, 'l':k0.l, 'bD':k0.date, 'eD':None, 'c':k0.c, 'bornStat':False, 'pTr':None}
+    firstTr={'up':None, 'h':k0.h, 'l':k0.l, 'bD':k0.date, 'eD':k0.date, 'c':k0.c, 'bornStat':False}
     # def first trend Up according to o/c price of first K 
     p=k0.p
     if k0.p == None:   # have IPO price
         p=k0.o
     if k0.c>p:     # no change means fall  
         firstTr['up'] = True
-        firstTr['eD'] = k0.hDate
     else:
         firstTr['up'] = False
-        firstTr['eD'] = k0.lDate
     trRec.append( firstTr )
     return trRec
 
 def newMax(tr, k):
     if tr['up']==True:
         tr['h'] = k.h
-        tr['eD'] = k.hDate
     else:
         tr['l'] = k.l
-        tr['eD'] = k.lDate
-    if tr['bornStat']:
-        if ( tr['up']==True and k.h>tr['pTr']['h']) or (tr['up']==False and k.l<tr['pTr']['l']):
-            tr['bornStat'] = False
+    tr['eD'] = k.date
 
-                    #elif k.l < sureTr['l']:  # newTr matured and become sureTr, old sureTr closed(keep in list and not referred by sureTr variable again at this day
-                    #    newTr['bornStat'] = False
-                    #    sureTr['eD'] = k.date
-                    #    sureTr = newTr
-
-        if ( tr['h'] / tr['l'] > 1.7 ) or ( tr['eD'] - tr['bD'] > 400 and tr['h'] / tr['l'] > 1.5):  # tr mature after enough space and space/time:
-            #sureTr['bornStat']='close'
-            #tr['pTr']['eD'] = k.date
-            tr['bornStat'] = False
-            #tr['pTr'] = tr
-
-
-def _closeOldSureTr(newTr, k):
+def closeOldSureTr(newTr, k):
     newTr['bornStat'] = False
     sureTr = newTr
     if tr['up']==True:
         tr['h'] = k.h
-        tr['eD'] = k.hDate
     else:
         tr['l'] = k.l
-        tr['eD'] = k.lDate
+    tr['eD'] = k.date
 
 #'''
-def _getTrend(dfM):
+def getTrend(dfM):
     trendDict = {}
     grped = dfM.groupby('pid')  #level=0) #'pid'
     for prod, group in grped:    #for prod in dfM['pid']:
         pK=group.iloc[0]  # dfM[prod][0]
         trRec = initTrend( pK ) 
         trendDict[prod] = trRec
-        #sureTr = trRec[0]  # latest sure trend
+        sureTr = trRec[0]  # latest sure trend
         newTr = trRec[0]  # newTr is latest trend, newTr may be not sure, i.e., it is may dead and become a period of sureTr. 
         # newTr == sureTr means max distance is continue increasing and no withdraw until latest day.   i.e., l or h of today is new max distance
         for i in range(len(group)-1): #for k in group[1:]: # dfM[prod][1:]:
             k = group.iloc[i+1]
-            # should not: newTr['eD'] = k.date
-            newTr['c'] = k.c
+            newTr['eD'] = k.date
             if newTr['bornStat']:
                 if newTr['up'] ==  False: # newtr is fall recent
-                    if k.h > newTr['pTr']['h']:  # newTr dead, previous trend (sureTr) continue to grow
-                        newMax(newTr['pTr'], k)
-                        newTr = newTr['pTr']
+                    if k.h > sureTr['h']:  # newTr dead, previous trend (sureTr) continue to grow
+                        newMax(sureTr, k)
+                        newTr = sureTr
                         trRec.pop()
                         continue
-                    #elif k.l < sureTr['l']:  # newTr matured and become sureTr, old sureTr closed(keep in list and not referred by sureTr variable again at this day
-                    #    newTr['bornStat'] = False
-                    #    sureTr['eD'] = k.date
-                    #    sureTr = newTr
-                    #    newMax(newTr, k)
+                    elif k.l < sureTr['l']:  # newTr matured and become sureTr, old sureTr closed(keep in list and not referred by sureTr variable again at this day
+                        newTr['bornStat'] = False
+                        sureTr['eD'] = k.date
+                        sureTr = newTr
+                        newMax(newTr, k)
                     elif k.l < newTr['l']:
                         newMax(newTr, k)
                 else:                # newtr is up trend
-                    if k.l < newTr['pTr']['l']:  # newTr dead, previous trend (sureTr) continue to grow
-                        newMax(newTr['pTr'], k)
-                        newTr = newTr['pTr']
+                    if k.l < sureTr['l']:  # newTr dead, previous trend (sureTr) continue to grow
+                        newMax(sureTr, k)
+                        newTr = sureTr
                         trRec.pop()
                         continue
-                    #elif k.h > sureTr['h']:  # newTr matured and become sureTr, old sureTr closed(keep in list and not referred by sureTr variable again at this day
-                    #    newTr['bornStat'] = False
-                    #    sureTr['eD'] = k.date
-                    #    sureTr = newTr
-                    #    newMax(newTr, k)
+                    elif k.h > sureTr['h']:  # newTr matured and become sureTr, old sureTr closed(keep in list and not referred by sureTr variable again at this day
+                        newTr['bornStat'] = False
+                        sureTr['eD'] = k.date
+                        sureTr = newTr
+                        newMax(newTr, k)
                     elif k.h > newTr['h']:
                         newMax(newTr, k)
                 if ( (newTr['h']-newTr['l']) / newTr['l'] > 1.5 ) or ( newTr['eD'] - newTr['bD'] > 200 and (newTr['h']-newTr['l']) / newTr['l'] > 1.25):  # newTr mature after enough space and space/time:
                     #sureTr['bornStat']='close'
-                    newTr['pTr']['eD'] = k.date
+                    sureTr['eD'] = k.date
                     newTr['bornStat'] = False
-                    newTr['pTr'] = newTr
+                    sureTr = newTr
             else:  # sure2new or sureContinue
                 if newTr['up'] ==  True: # up trend
                     if k.h > newTr['h']:
@@ -397,56 +377,6 @@ def _getTrend(dfM):
                         newTr = newTrend(newTr, k) # newTr is the same with sureTr before call return
                         trRec.append( newTr )
         break
-    return trendDict
-#'''
-
-def getTrend(dfM):
-    trendDict = {}
-    grped = dfM.groupby('pid')  #level=0) #'pid'
-    for prod, group in grped:    #for prod in dfM['pid']:
-        pK=group.iloc[0]  # dfM[prod][0]
-        trRec = initTrend( pK ) 
-        trendDict[prod] = trRec
-        newTr = trRec[0]  # newTr is latest trend, newTr may be not sure, i.e., it is may dead and become a period of sureTr. 
-        # newTr == sureTr means max distance is continue increasing and no withdraw until latest day.   i.e., l or h of today is new max distance
-        for i in range(len(group)-1): #for k in group[1:]: # dfM[prod][1:]:
-            k = group.iloc[i+1]
-            newTr['c'] = k.c
-            if k.date>20150830:
-                xxxx=1
-            if newTr['bornStat']:
-                if newTr['up'] ==  False: # newtr is fall recent
-                    if k.h > newTr['pTr']['h']:  # newTr dead, previous trend (sureTr) continue to grow
-                        newTr = newTr['pTr']
-                        newTr['c'] = k.c
-                        newMax(newTr, k)
-                        trRec.pop()
-                        continue
-                    elif k.l < newTr['l']:
-                        newMax(newTr, k)
-                else:                # newtr is up trend
-                    if k.l < newTr['pTr']['l']:  # newTr dead, previous trend (sureTr) continue to grow
-                        newTr = newTr['pTr']
-                        newTr['c'] = k.c
-                        newMax(newTr, k)
-                        trRec.pop()
-                        continue
-                    elif k.h > newTr['h']:
-                        newMax(newTr, k)
-            else:  # sure2new or sureContinue
-                if newTr['up'] ==  True: # up trend
-                    if k.h > newTr['h']:
-                        newMax(newTr, k)
-                    if k.c < k.p:  # withdraw born new trend
-                        newTr = newTrend(newTr, k) # newTr is the same with sureTr before call return
-                        trRec.append( newTr )
-                else:                # fall trend
-                    if k.l < newTr['l']:
-                        newMax(newTr, k)
-                    if k.c > k.p:  # withdraw born new trend
-                        newTr = newTrend(newTr, k) # newTr is the same with sureTr before call return
-                        trRec.append( newTr )
-        #break
     return trendDict
 #'''
 
