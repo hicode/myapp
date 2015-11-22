@@ -11,7 +11,6 @@ from net.website.django.mysite1.myapp.models import TradeRealTime
 from xlwt.Utils import cellrange_to_rowcol_pair
 '''
 
-Cell("BB23").value = Cell("BB23").font.color
 
 def getEastPrdLst():
     prdLst = []
@@ -84,8 +83,8 @@ def readHistCsv():
     allPrdWght =  pd.DataFrame({})
     dfl = []
     dflWght = []
-    #for subM in [ 'HKS', 'HKSC' ]:
-    for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB' ]:
+    for subM in [ 'HKS', 'HKSC' ]:
+    #for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB' ]:
     #for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB', 'HKS', 'HKSC' ]:
         dfl.append( pd.read_csv( r'D:\data\histcsv\ths\%s.csv' % subM, index_col=['pid', 'y', 'm', 'date'], encoding='gbk') )
         dflWght.append( pd.read_csv( r'D:\data\weightcsv\ql\%s.wght.csv' % subM, index_col=['pid', 'date'], encoding='gbk') )
@@ -101,8 +100,6 @@ def calcWght(dir, allPrd):
 
     allPrd['wght'] = None # pd.Series(1, allPrd.index)
     allPrd['freeShare'] = None
-    allPrd['swapRt'] = None
-    allPrd['swapRtChng'] = None
     allPrd['totShare'] = None
     allPrd['p'] = None
     grped = allPrd.groupby(level=0) #'pid'
@@ -130,56 +127,45 @@ def calcWght(dir, allPrd):
             wght = grp['wght'][0]
             wghtL = []
             freeShareL = []
-            swapRtChngL = []
             totShareL = []
             #free = 0
             #tot = 0 
             iGrp = 0
-            pfree,free=None,None
             for i in dfWght.index: # for dk in grp:
                 #pFree = free #freeShareL += [ grp['freeShare'].iat[ iGrp ] ] * iGrp
                 #pTot = tot #totShareL += [ grp['totShare'].iat[ iGrp ] ] * iGrp
-
-                pfree = free
+    
                 x, y, date, gift, sell, pSell, bonus, incr, tot, free = dfWght.iloc[i] #, p = dfWght.iloc[i]
-                if (grp['date'].tail(1)>=date).values[0]:  # k线数据日期在权息数据日期之后
+                if (grp['date'].tail(1)>=date).values[0]:
                     break
-                iGrp = grp['date'].index[ grp['date']<date ]  # 除权日之前的K线数据的index
+                iGrp = grp['date'].index[ grp['date']<date ]
                 #grp['freeShare'].iat[ iGrp ] = free
                 #grp['totShare'].iat[ iGrp ] = tot
     
                 if len(iGrp)==0:    #  000001.sz 20071231 非交易日 无P
                     continue
                 copyLen = iGrp[0]-len(wghtL)
-                c = grp['c'][ iGrp[0] ]  # p = grp['p'][ iGrp[0] ] 
+                c = grp['c'][ iGrp[0] ]  # p = grp['p'][ iGrp[0] ]
                 wghtL += [wght] * copyLen
                 freeShareL += [free] * copyLen
-                swapRtChngL += [free] * copyLen
                 totShareL += [tot] * copyLen
                 # grp['wght'][i] =  wght
-
+    
                 diviC = (c - bonus + pSell*sell) / (1 + sell + incr + gift)  #diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
                 wght = wght * ( c / diviC )  # wght = wght * ( p / diviC )
-                if pfree==None:
-                    swapRtChng = 1
-                else:
-                    swapRtChng = free / ((pFree*(1 + sell + incr + gift))  # free = newfree + pfree * (1 + sell + incr + gift)
 
             copyLen = len(grp) - len(wghtL)
             wghtL += [wght] * copyLen
             freeShareL += [free] * copyLen
-            swapRtChngL += [swapRtChng] * copyLen
             totShareL += [tot] * copyLen
             # grp['wght'][i] =  wght
-
-
+    
+    
             #grp['wght'] = wghtL
             #grp['freeShare'] = freeShareL
-            #grp['swapRtChngL'] = swapRtChngL
             #grp['totShare'] = totShareL
             allPrd['wght'][pid] = wghtL  #[:len(wghtL)] = wghtL
             allPrd['freeShare'][pid] = freeShareL  #[:len(wghtL)] = freeShareL
-            allPrd['swapRtChngL'][pid] = swapRtChngL  #[:len(wghtL)] = swapRtChngL
             allPrd['totShare'][pid] = totShareL  #[:len(wghtL)] = totShareL
             #allPrd.to_csv(r"D:\data\csvCalc\allprd1.csv")
 
@@ -190,7 +176,6 @@ def calcWght(dir, allPrd):
     allPrd_divi['l'] = allPrd['l']/allPrd['wght']
     allPrd_divi['c'] = allPrd['c']/allPrd['wght']
     allPrd_divi['p'] = allPrd['p']/allPrd['wght']
-    allPrd_divi['swapRt'] = allPrd['vol']/allPrd['freeShare']
 
     return allPrd, allPrd_divi
 
@@ -222,62 +207,7 @@ def calcWght(dir, allPrd):
     '''
 
 
-def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h10m
-    allPrdKM.set_index(['pid','y', 'm'], inplace=True)
-    allPrdKY.set_index(['pid','y'], inplace=True)
-    allPrdK.set_index(['pid','date'], inplace=True)
-
-    L12 = allPrdKY.query('y==2012')[['l','lDate']].reset_index().set_index('pid')
-    L12.columns = ['y','L12','lDate']
-    L13 = allPrdKY.query('y==2013')[['l','lDate']].reset_index().set_index('pid')
-    L13.columns = ['y','L13','lDate']
-    L14 = allPrdKY.query('y==2014')[['l','lDate']].reset_index().set_index('pid')
-    L14.columns = ['y','L14','lDate']
-    H8 = allPrdKM.query('y==2015 and m==8')[['h','hDate']].reset_index().set_index('pid')
-    H8.columns = ['y','m','H8','hDate']
-
-    _H456 = allPrdKM.query('(y==2015 and m==6) or (y==2015 and m==5) or (y==2015 and m==4)')[['h','hDate']]
-    __H456 = _H456.groupby(level=0)['h'].max()
-    #__H456.name = 'H456'
-    H456 = pd.DataFrame({'H456':__H456}).reset_index().set_index('pid')
-
-    _L789 = allPrdKM.query('(y==2015 and m==7) or (y==2015 and m==8) or (y==2015 and m==9) or (y==2015 and m==10)')[['l','lDate']]
-    __L789 = _L789.groupby(level=0)['l'].min()
-    #__L789.name = 'L789'
-    L789 = pd.DataFrame({'L789':__L789}).reset_index().set_index('pid')
-    
-    _H10P = allPrdKM.query('(y==2015 and m==10) or (y==2015 and m==11)')[['h','hDate']]
-    __H10P = _H10P.groupby(level=0)['h'].max()
-    #__H10P.name = 'H10P'
-    H10P = pd.DataFrame({'H10P':__H10P}).reset_index().set_index('pid')
-
-    C930 = allPrdK.query('date==20150930')[['c']].reset_index().set_index('pid')
-    C930.columns = ['date','C930']
-    L820 = allPrdK.query('date==20150820')[['l']].reset_index().set_index('pid')
-    L820.columns = ['date','L820']
-
-    _L1021 = allPrdK.query('date==20151021 or date==20151022')[['l']]
-    __L1021 = _L1021.groupby(level=0)['l'].min()
-    #__L1021.name = 'L1021'
-    L1021 = pd.DataFrame({'L1021':__L1021}).reset_index().set_index('pid')
-
-    _L1103 = allPrdK.query('date==20151102 or date==20151103 or date==20151104')[['l']]
-    __L1103 = _L1103.groupby(level=0)['l'].min()
-    #__L1103.name = 'L1103'
-    L1103 = pd.DataFrame({'L1103':__L1103}).reset_index().set_index('pid')
-
-    _L1116 = allPrdK.query('date==20151113 or date==20151116')[['l']]
-    __L1116 = _L1116.groupby(level=0)['l'].min()
-    #__L1116.name = 'L1116'
-    L1116 = pd.DataFrame({'L1116':__L1116}).reset_index().set_index('pid')
-
-    C = allPrdK.query('date==20151120')[['c']].reset_index().set_index('pid')
-    C.columns = ['date','C']
-
-    vDf = pd.concat( [ L12[['L12']], L13[['L13']], L14[['L14']], H8[['H8']], C930[['C930']], L820[['L820']], H456, L789, H10P, L1021, L1103, L1116, C ], axis=1, join='outer')
-    vDf.to_csv(r'D:\data\csvCalc\vDf.csv')
-    #vDf = pd.merge(L12,L13,L14,H8,C930,L820,on='pid',how='outer')
-
+def fgrAllPrd( allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h10m
     grped = allPrdKM.groupby(level=0) #'pid'
     for pid, group in grped:
         grp = group.reset_index()
@@ -328,39 +258,30 @@ wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan7')
 wtchLAll = list(set(wtchL))
 
 t = time.clock()
-allPrd =  pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
-#allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdA_divi_km.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
-#allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdA_divi_ky.csv', index_col=['pid', 'y', 'date'], encoding='gbk')
-
-allPrdK = allPrd.sort().reset_index()
-allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdA_divi_km.csv', index_col=['pid', 'date'] ).sort().reset_index()
-allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdA_divi_ky.csv', index_col=['pid', 'date'] ).sort().reset_index()
-allPrdView = fgrAllPrd(allPrdK, allPrdKM, allPrdKY)
-
-
-
-allPrd = readHistCsv()
-allPrd, allPrd_divi = calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
-allPrd.to_csv('D:\data\csvCalc\pdA.csv')
-allPrd_divi.to_csv('D:\data\csvCalc\pdA_divi.csv')
-
+#allPrd =  pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdA_divi_km.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdA_divi_ky.csv', index_col=['pid', 'y', 'date'], encoding='gbk')
+#allPrd = readHistCsv()
+#allPrd, allPrd_divi = calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
+#allPrd.to_csv('D:\data\csvCalc\pdA.csv')
+#allPrd_divi.to_csv('D:\data\csvCalc\pdA_divi.csv')
 print('read allPrd csv time: %.03f' % (time.clock()-t) )
 
 
 def newTrend(curTr, k):
     newTr = {}
-    newTr = {'up':not curTr['up'], 'h':None, 'l':None, 'bD':curTr['eD'], 'eD':k.date, 'c':k.c, 'bornStat':True, 'pTr':curTr}
+    newTr = {'up':not curTr['up'], 'h':None, 'l':None, 'bD':curTr['eD'], 'eD':None, 'c':k.c, 'bornStat':True, 'pTr':curTr}
     #newTr.sure = False
     #newTr.date = curTrend.endDate ## ?? k.date
     #newTr.up = not curTrend.up
     if curTr['up'] == True:
         newTr['h'] = curTr['h']
         newTr['l'] = k.l
-        #newTr['eD'] = k.lDate
+        newTr['eD'] = k.lDate
     else:
         newTr['l'] = curTr['l']
         newTr['h'] = k.h
-        #newTr['eD'] = k.hDate
+        newTr['eD'] = k.hDate
         #if K.l < curTrend.l :
         #    pass
     return newTr
@@ -368,28 +289,27 @@ def newTrend(curTr, k):
 def initTrend(k0):
     #1st trend ::              trendDict[prod].append( {Up:'', startD:'', startV:'', endV:'', bornStat:'close'} )  # pTrend    curTrend   IPO Price
     trRec = []
-    firstTr={'up':None, 'h':k0.h, 'l':k0.l, 'bD':k0.date, 'eD':k0.date, 'c':k0.c, 'bornStat':False, 'pTr':None}
+    firstTr={'up':None, 'h':k0.h, 'l':k0.l, 'bD':k0.date, 'eD':None, 'c':k0.c, 'bornStat':False, 'pTr':None}
     # def first trend Up according to o/c price of first K 
     p=k0.p
     if k0.p == None:   # have IPO price
         p=k0.o
     if k0.c>p:     # no change means fall  
         firstTr['up'] = True
-        #firstTr['eD'] = k0.hDate
+        firstTr['eD'] = k0.hDate
     else:
         firstTr['up'] = False
-        #firstTr['eD'] = k0.lDate
+        firstTr['eD'] = k0.lDate
     trRec.append( firstTr )
     return trRec
 
 def newMax(tr, k):
     if tr['up']==True:
         tr['h'] = k.h
-        #tr['eD'] = k.hDate
+        tr['eD'] = k.hDate
     else:
         tr['l'] = k.l
-        #tr['eD'] = k.lDate
-    tr['eD'] = k.date
+        tr['eD'] = k.lDate
     if tr['bornStat']:
         if ( tr['up']==True and k.h>tr['pTr']['h']) or (tr['up']==False and k.l<tr['pTr']['l']):
             tr['bornStat'] = False
@@ -481,21 +401,19 @@ def _getTrend(dfM):
 #'''
 
 def getTrend(dfM):
-    trRec = [] #trendDict = {}
+    trendDict = {}
     grped = dfM.groupby('pid')  #level=0) #'pid'
     for prod, group in grped:    #for prod in dfM['pid']:
         pK=group.iloc[0]  # dfM[prod][0]
-        t = initTrend( pK ) 
-        #trendDict[prod] = trRec
-        newTr = t[0]  # newTr is latest trend, newTr may be not sure, i.e., it is may dead and become a period of sureTr.
-        newTr['pid'] = prod
-        trRec += t 
+        trRec = initTrend( pK ) 
+        trendDict[prod] = trRec
+        newTr = trRec[0]  # newTr is latest trend, newTr may be not sure, i.e., it is may dead and become a period of sureTr. 
         # newTr == sureTr means max distance is continue increasing and no withdraw until latest day.   i.e., l or h of today is new max distance
         for i in range(len(group)-1): #for k in group[1:]: # dfM[prod][1:]:
             k = group.iloc[i+1]
             newTr['c'] = k.c
-            #if k.date>=19920301:
-            #    xxxx=1
+            if k.date>20150830:
+                xxxx=1
             if newTr['bornStat']:
                 if newTr['up'] ==  False: # newtr is fall recent
                     if k.h > newTr['pTr']['h']:  # newTr dead, previous trend (sureTr) continue to grow
@@ -521,34 +439,30 @@ def getTrend(dfM):
                         newMax(newTr, k)
                     if k.c < k.p:  # withdraw born new trend
                         newTr = newTrend(newTr, k) # newTr is the same with sureTr before call return
-                        newTr['pid'] = prod
                         trRec.append( newTr )
                 else:                # fall trend
                     if k.l < newTr['l']:
                         newMax(newTr, k)
                     if k.c > k.p:  # withdraw born new trend
                         newTr = newTrend(newTr, k) # newTr is the same with sureTr before call return
-                        newTr['pid'] = prod
                         trRec.append( newTr )
         #break
-    return trRec #trendDict
+    return trendDict
 #'''
 
 
-
-allPrdK = pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'date'] ).sort().reset_index()
-
-
-trendDict = getTrend( allPrdK )
-#pd.DataFrame( trendDict['000001.SZ'] ).to_csv(r'd:\data\csvCalc\tr.csv')
-pd.DataFrame( trendDict ).drop('pTr', axis=1).to_csv(r'd:\data\csvCalc\tr1107.csv')  #pd.DataFrame( trendDict ).pop('pTr').to_csv(r'd:\data\csvCalc\tr.csv')
+allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdA_divi_km.csv' )
+trendDict = getTrend( allPrdKM )
+pd.DataFrame( trendDict['000001.SZ'] ).to_csv(r'd:\data\csvCalc\tr.csv')
 
 
 allPrd = allPrd.query('y==2015 or y==2014') # or y==2013 or y==2012')  # allPrd.xs('000001.SZ',level='pid')
-#allPrdK = allPrdK.query('y==2015 or y==2014 or y==2013 or y==2012 or y==2011 or y==2010 or y==2009 or y==2008 or y==2007 or y==2006 or y==2005 or y==2004 or y==2003') # or y==2013 or y==2012')
-allPrdK = allPrdK.query('y==2015')
-allPrdKY = allPrdK.query('y==2015')
+#allPrdKM = allPrdKM.query('y==2015 or y==2014 or y==2013 or y==2012 or y==2011 or y==2010 or y==2009 or y==2008 or y==2007 or y==2006 or y==2005 or y==2004 or y==2003') # or y==2013 or y==2012')
+allPrdKM = allPrdKM.query('y==2015')
+allPrdKY = allPrdKM.query('y==2015')
 
+
+allPrdView = fgrAllPrd(allPrdKM, allPrdKY)
 
 
 prdDf = getEastPrdLst()

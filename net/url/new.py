@@ -504,7 +504,6 @@ def groupK(dfD, fldL):  # conn,
     return rsltDf
 
 
-
 #getWatchLst_ThsExport(r'D:\data\ths\export.txt')
 #create view watchl as select code,name,market,watchreason from myapp_product, myapp_watchlist where myapp_watchlist.product_id=myapp_product.id 
 
@@ -559,8 +558,8 @@ def group1(fn, grpFldLst):
     df = groupK(dfD, grpFldLst) #connHis, 
     df.to_csv('D:\\data\\csvCalc\\%s_k%s.csv' % (fnOut, grpFldLst[-1]), encoding='utf-8', index=True)
 
-group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
-group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y'] )
+#group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
+#group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y'] )
 
 def group(fn):
     t = time.clock()
@@ -590,8 +589,8 @@ def group(fn):
     print('to_sql time: %.03f' % (time.clock()-t) )
 
 
-group( r'd:\myapp_kdaily_cns_tmp.csv' )
-group( r'd:\myapp_kdaily_hks_tmp.csv' )
+#group( r'd:\myapp_kdaily_cns_tmp.csv' )
+#group( r'd:\myapp_kdaily_hks_tmp.csv' )
 
 
 t = time.clock()
@@ -620,14 +619,14 @@ prdDf = pd.DataFrame( d )
 '''
 
 
-getQlData( conn )
-getQLData2OneFile( conn )
+#getQlData( conn )
+#getQLData2OneFile( conn )
 
 #arrangeCsvScan(r'D:\data\histcsv\ths')
 
 t = time.clock()
-getTHSData2OneFile( conn )
 getTHSData( conn )
+getTHSData2OneFile( conn )
 print('getTHSData time: %.03f' % (time.clock()-t) )
 
 

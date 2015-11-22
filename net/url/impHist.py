@@ -471,13 +471,22 @@ def hisFromThs(fn, pid):
             fp.read( head.headerLen-sizeof(head) ) # read columnList
             head.recCount = head.recCount & 0xffffff
             for i in range(head.recCount):  #while fp.readinto(k1):
-                fp.readinto(k1)
+                _size = fp.readinto(k1)
+                if i==head.recCount-1:
+                    pass
                 fp.read( head.recLen-sizeof(k1) ) # unused
                 if k1.date==0 or k1.o==0 or k1.h==0 or k1.l==0 or k1.c==0 or k1.amnt==0 or k1.vol==0:
-                    sys.stdout.write(  'error history record of pid:' + str(pid) + 'record:: ' + str(k1) + '\r\n' )
+                    sys.stdout.write(  'error history record of pid_date:' + str(pid) + str(k1.date) + 'record:: ' + str(k1) + '\r\n' )
                     continue
                 dateStr = '%04d-%s-%02d' % (k1.date/10000, str(k1.date)[4:6], k1.date%100)
-                recLst.append( [pid, dateStr, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), getValTHS(k1.amnt), getValTHS(k1.vol), 0] )
+                vol = getValTHS(k1.vol)
+                amt = getValTHS(k1.amnt)
+                if vol==0:
+                    avg = None
+                    vol = None
+                else:
+                    avg = amt*1.0/vol
+                recLst.append( [pid, dateStr, getValTHS(k1.o), getValTHS(k1.h), getValTHS(k1.l), getValTHS(k1.c), amt, vol, avg, 0] )
     except IOError, e:
         sys.stdout.write(  'except while access file:' + fn + 'IOError: ' + str(e) + '\r\n' )
         return ''
@@ -504,10 +513,12 @@ def getTHSData(conn):
                     continue
                 #fileDict[prodId] = (dir + fn, code, market)
                 recLst = hisFromThs(dir + fn, globalData.prodMapId[prodId].id)
-                lines = ['pid,date,o,h,l,c,amt,vol,AdjC\r\n']  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
+                lines = ['pid,y,m,d,date,o,h,l,c,amt,vol,avg,AdjC\r\n']  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
                 for rec in recLst:
                     ln = code + '.' + market
-                    for fld in rec[1:]: 
+                    y,m,d = str(rec[1]).split('-')
+                    ln += ',' + y + ',' + m + ',' + d + ',' + y+m+d   
+                    for fld in rec[2:]: 
                         ln += ',' + str(fld)
                     ln += '\r\n'
                     lines.append( ln )
@@ -531,7 +542,7 @@ def getTHSData2OneFile(conn):
 
     dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
     fileDict = {}
-    head = 'pid,y,m,d,date,o,h,l,c,amt,vol,AdjC\r\n'  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
+    head = 'pid,y,m,d,date,o,h,l,c,amt,vol,avg,AdjC\r\n'  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
     recDict = {}
     for d in dirLst:
         #for dir in 
