@@ -1,0 +1,2 @@
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v140:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
+Debug|Win32|E:\GitHub\myapp\c\zsxxsz-acl-master\acl\lib_acl_cpp\samples\redis\redis\|

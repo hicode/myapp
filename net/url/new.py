@@ -181,11 +181,11 @@ def priceAdjust(conn):
     globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()  # why ??
     # price of history data from yahoo is forward adjust price
     # backward adjust price = real-price * ratioBack,  ratioBack = 1st rationFrwd / rationFrwd
-    for key in prodDict8Submarket:
+    for key in globalData.prodDict8Submarket:
         tblName = MapSubmarket2Table( key ).lower()
         if tblName <> 'cns' and tblName <> 'hks':
             continue 
-        for prod in prodDict8Submarket[key]:
+        for prod in globalData.prodDict8Submarket[key]:
             if prod.dateHistEnd == None:
                 continue
             elif prod.ratioFrwdBegin == None:
@@ -488,7 +488,7 @@ def groupK(dfD, fldL):  # conn,
     o=grouped['o'].first()
     p=grouped['p'].first()
     c=grouped['c'].last()
-    vol=grouped['vol'].sum()
+    vol=None #grouped['vol'].sum()
     startD=grouped['date'].min()
     ih=grouped['h'].idxmax()
     hD=dfD.iloc[ih]['date']
@@ -558,8 +558,14 @@ def group1(fn, grpFldLst):
     df = groupK(dfD, grpFldLst) #connHis, 
     df.to_csv('D:\\data\\csvCalc\\%s_k%s.csv' % (fnOut, grpFldLst[-1]), encoding='utf-8', index=True)
 
-#group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
-#group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y'] )
+group1( r'D:\data\csvCalc\pd_divi.csv', ['pid', 'y', 'm'] )
+group1( r'D:\data\csvCalc\pd_divi.csv', ['pid', 'y'] )
+'''
+group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y', 'm'] )
+group1( r'D:\data\csvCalc\pdA_divi.csv', ['pid', 'y'] )
+group1( r'D:\data\csvCalc\pdHK_divi.csv', ['pid', 'y', 'm'] )
+group1( r'D:\data\csvCalc\pdHK_divi.csv', ['pid', 'y'] )
+'''
 
 def group(fn):
     t = time.clock()
@@ -619,8 +625,11 @@ prdDf = pd.DataFrame( d )
 '''
 
 
-#getQlData( conn )
-#getQLData2OneFile( conn )
+
+
+#'''
+getQlData( conn )
+getQLData2OneFile( conn )
 
 #arrangeCsvScan(r'D:\data\histcsv\ths')
 
@@ -628,17 +637,17 @@ t = time.clock()
 getTHSData( conn )
 getTHSData2OneFile( conn )
 print('getTHSData time: %.03f' % (time.clock()-t) )
-
+#'''
 
 #'''
 t = time.clock()
-for i in range(11):
-    getHist2Csv( prodDict8Submarket, 10+10*(i/2) )
+for i in range(39):
+    getHist2Csv( globalData.prodDict8Submarket, 10+10*(i/2) )
 print('getHist2Csv time: %.03f' % (time.clock()-t) )
 
 
 t = time.clock()
-getHistFromCsv(prodDict8Submarket, conn)
+getHistFromCsv(globalData.prodDict8Submarket, conn)
 globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()
 print('getHistFromCsv time: %.03f' % (time.clock()-t) )
 
@@ -649,7 +658,7 @@ print('getHistFromCsv time: %.03f' % (time.clock()-t) )
 t = time.clock()
 for i in range(21):
     #continue
-    getHist( prodDict8Submarket, conn, 10+10*(i/2) )
+    getHist( globalData.prodDict8Submarket, conn, 10+10*(i/2) )
     globalData.submarketLst, globalData.prodIdMap, globalData.prodMapId, globalData.prodDict8Submarket = prepareTrading()
 print('getHist time: %.03f' % (time.clock()-t) )
 

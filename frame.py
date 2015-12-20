@@ -491,10 +491,41 @@ if __name__ == '__main__':
     ###########################################################################
     #auto launch data client
     wsh = win32com.client.Dispatch( "Wscript.Shell" )
+    htwt = u'网上股票交易系统5.0' #此处假设主窗口名为tt
+    notepad = u'无标题 - 记事本'
+
+    if False == wsh.AppActivate( htwt ):
+        time.sleep( 1 )
+    '''
+    wsh.SendKeys( "123" )
+    for i in range(20):
+        wsh.SendKeys( str(i) )
+        time.sleep( 0.01 )
+        wsh.SendKeys( "{ENTER}" )
+        time.sleep( 0.01 )
+    '''
+    time.sleep( 0.1 )
+    wsh.SendKeys( "{F1}" )
+    time.sleep( 0.1 )
+    wsh.SendKeys( "%R" )
+    time.sleep( 0.1 )
+    wsh.SendKeys( "002081" )
+    time.sleep( 0.1 )
+    wsh.SendKeys( "{ENTER}"  )
+    time.sleep( 0.1 )
 
     for i in range(10000):
         time.sleep(1)
         wsh.SendKeys( "{PGDN}" )
+    
+    '''
+    alt + f "%F"
+    ctrl + s "^S"
+    shift + m "+M"
+    alt + tab "%{TAB}"
+    alt + f4 "%{F4}"
+    win + r "^({ESC}R)"
+    '''
 
     wsh.run( r'C:\new_gdzq_l2\TdxW.exe' )
     time.sleep( 3 )

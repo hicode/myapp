@@ -160,10 +160,12 @@ def getHist2Csv(prodDict8Submarket, timeout):  # http://ichart.yahoo.com/table.c
         market = key[:2]
         if key[2]<>'S' and key[2]<>'I':
             continue
+        if key[:2]<>'HK':
+            continue
 
         for prod in prodDict8Submarket[key]:
             if 'yahoo' in prod.maskSite.split('.'):
-                continue
+                pass #continue
             csvfn = r'E:\GitHub\myapp\net\website\django\mysite1\HistCsv\%s.%s.csv' % (market,prod.code)
             if os.path.isfile(csvfn):
                 continue
@@ -176,6 +178,7 @@ def getHist2Csv(prodDict8Submarket, timeout):  # http://ichart.yahoo.com/table.c
             else:
                 url = "http://ichart.yahoo.com/table.csv?s=%s&%s" % ( prod.code + '.' + market, qryDate )
             print('start get url: %s, dataFromUrl start time: %s\r\n' % (url, datetime.now()) )
+            t = time.clock()
             f = dataFromUrl(url, waittime=timeout)
             if f=='url not found':
                 prod.maskSite += 'yahoo.'
@@ -475,7 +478,7 @@ def hisFromThs(fn, pid):
                 if i==head.recCount-1:
                     pass
                 fp.read( head.recLen-sizeof(k1) ) # unused
-                if k1.date==0 or k1.o==0 or k1.h==0 or k1.l==0 or k1.c==0 or k1.amnt==0 or k1.vol==0:
+                if k1.date==0 or k1.o==0 or k1.h==0 or k1.l==0 or k1.c==0 or k1.vol==0: #k1.amnt==0 or 
                     sys.stdout.write(  'error history record of pid_date:' + str(pid) + str(k1.date) + 'record:: ' + str(k1) + '\r\n' )
                     continue
                 dateStr = '%04d-%s-%02d' % (k1.date/10000, str(k1.date)[4:6], k1.date%100)
@@ -497,14 +500,22 @@ def getTHSData(conn):
     import scandir
 
     dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
+    #dirLst = [('hk','hk')] #, ('hk72','hk')]
     fileDict = {}
     for d in dirLst:
         #for dir in 
-        dir = 'C:\\htzqzyb2\\history\\%s\\day\\' % d[0]
+        #dir = 'C:\\htzqzyb2\\history\\%s\\day\\' % d[0]  #D:\同花顺软件\同花顺\history
+        dir = 'C:\\Users\Public\history\\%s\\day\\' % d[0]  #D:\同花顺软件\同花顺\history
+        #dir = u'D:\\同花顺软件\\同花顺\\history\\%s\\day\\' % d[0]
         market = d[1].upper()
         for path, subdirs, files in scandir.walk(dir):
             for fn in files:
                 code=fn.split('.')[0]
+                if market=='HK':
+                    if code[:2]<>'HK':
+                        print('error HK code: %s' % code)
+                        continue
+                    code = '0' + code[2:]
                 #if code<>'600072':
                 #    continue
                 prodId=code + '.' + market
@@ -541,16 +552,24 @@ def getTHSData2OneFile(conn):
     import scandir
 
     dirLst = [('sznse', 'sz'), ('shase', 'sh'), ('hk','hk'), ('hk72','hk')]
+    #dirLst = [('hk','hk')] #, ('hk72','hk')]
     fileDict = {}
     head = 'pid,y,m,d,date,o,h,l,c,amt,vol,avg,AdjC\r\n'  #fp.write('Date,Open,High,Low,Close,amt,vol,AdjC\r\n')
     recDict = {}
     for d in dirLst:
         #for dir in 
-        dir = 'C:\\htzqzyb2\\history\\%s\\day\\' % d[0]
+        #dir = 'C:\\htzqzyb2\\history\\%s\\day\\' % d[0]  #D:\同花顺软件\同花顺\history
+        dir = 'C:\\Users\Public\history\\%s\\day\\' % d[0]  #D:\同花顺软件\同花顺\history
+        #dir = u'D:\\同花顺软件\\同花顺\\history\\%s\\day\\' % d[0]
         market = d[1].upper()
         for path, subdirs, files in scandir.walk(dir):
             for fn in files:
                 code=fn.split('.')[0]
+                if market=='HK':
+                    if code[:2]<>'HK':
+                        print('error HK code: %s' % code)
+                        continue
+                    code = '0' + code[2:]
                 prodId=code + '.' + market
                 if prodId not in globalData.prodMapId.keys():
                     sys.stdout.write(  'code not found:' + prodId + '\r\n' )

@@ -11,7 +11,30 @@ from net.website.django.mysite1.myapp.models import TradeRealTime
 from xlwt.Utils import cellrange_to_rowcol_pair
 '''
 
-Cell("BB23").value = Cell("BB23").font.color
+#'''
+dfX = pd.read_excel(r'E:\GitHub\myapp\xls\del\myview1129.xlsx', 'Sheet4', index_col=None, na_values=['NA'])
+topN = 200
+dict = {}
+cols = dfX.columns[11:]
+#cols.reverse()
+for col in cols:
+    break
+    tmp = dfX.sort(col)
+
+    avgH = tmp[['LFY', 'TTM', 'PB', 'xLFY', 'xTTM', 'xPB']].tail(topN)
+    avgH.columns = ['h_LFY', 'h_TTM', 'h_PB', 'h_xLFY', 'h_xTTM', 'h_xPB']
+    avgH = avgH.sum()/topN
+
+    avgL = tmp[['LFY', 'TTM', 'PB', 'xLFY', 'xTTM', 'xPB']].head(topN)
+    avgL.columns = ['l_LFY', 'l_TTM', 'l_PB', 'l_xLFY', 'l_xTTM', 'l_xPB']
+    avgL = avgL.sum()/topN
+
+    dict[ str(col) ] = avgH.append( avgL )
+#'''
+
+#pd.DataFrame(dict).to_csv(r'D:\data\csvCalc\dailyTopPEB.csv')
+
+#Cell("BB23").value = Cell("BB23").font.color
 
 def getEastPrdLst():
     prdLst = []
@@ -84,9 +107,8 @@ def readHistCsv():
     allPrdWght =  pd.DataFrame({})
     dfl = []
     dflWght = []
+    for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB', 'HKS', 'HKSC' ]:
     #for subM in [ 'HKS', 'HKSC' ]:
-    for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB' ]:
-    #for subM in ['SZS', 'SZSC', 'SZSZ', 'SHS', 'SHSB', 'SZSB', 'HKS', 'HKSC' ]:
         dfl.append( pd.read_csv( r'D:\data\histcsv\ths\%s.csv' % subM, index_col=['pid', 'y', 'm', 'date'], encoding='gbk') )
         dflWght.append( pd.read_csv( r'D:\data\weightcsv\ql\%s.wght.csv' % subM, index_col=['pid', 'date'], encoding='gbk') )
     allPrd = pd.concat(dfl).sort(ascending=False) #, ignore_index=True)
@@ -135,12 +157,12 @@ def calcWght(dir, allPrd):
             #free = 0
             #tot = 0 
             iGrp = 0
-            pfree,free=None,None
+            pFree,free=None,None
             for i in dfWght.index: # for dk in grp:
                 #pFree = free #freeShareL += [ grp['freeShare'].iat[ iGrp ] ] * iGrp
                 #pTot = tot #totShareL += [ grp['totShare'].iat[ iGrp ] ] * iGrp
 
-                pfree = free
+                pFree = free
                 x, y, date, gift, sell, pSell, bonus, incr, tot, free = dfWght.iloc[i] #, p = dfWght.iloc[i]
                 if (grp['date'].tail(1)>=date).values[0]:  # k线数据日期在权息数据日期之后
                     break
@@ -154,16 +176,17 @@ def calcWght(dir, allPrd):
                 c = grp['c'][ iGrp[0] ]  # p = grp['p'][ iGrp[0] ] 
                 wghtL += [wght] * copyLen
                 freeShareL += [free] * copyLen
-                swapRtChngL += [free] * copyLen
                 totShareL += [tot] * copyLen
                 # grp['wght'][i] =  wght
 
                 diviC = (c - bonus + pSell*sell) / (1 + sell + incr + gift)  #diviC = (p - bonus + pSell*sell) / (1 + sell + incr + gift)
                 wght = wght * ( c / diviC )  # wght = wght * ( p / diviC )
-                if pfree==None:
+                if pFree==None:
                     swapRtChng = 1
                 else:
-                    swapRtChng = free / ((pFree*(1 + sell + incr + gift))  # free = newfree + pfree * (1 + sell + incr + gift)
+                    swapRtChng = free / ( pFree*(1 + sell + incr + gift) )  # free = newfree + pFree * (1 + sell + incr + gift)
+
+                swapRtChngL += [swapRtChng] * copyLen
 
             copyLen = len(grp) - len(wghtL)
             wghtL += [wght] * copyLen
@@ -179,10 +202,9 @@ def calcWght(dir, allPrd):
             #grp['totShare'] = totShareL
             allPrd['wght'][pid] = wghtL  #[:len(wghtL)] = wghtL
             allPrd['freeShare'][pid] = freeShareL  #[:len(wghtL)] = freeShareL
-            allPrd['swapRtChngL'][pid] = swapRtChngL  #[:len(wghtL)] = swapRtChngL
+            allPrd['swapRtChng'][pid] = swapRtChngL  #[:len(wghtL)] = swapRtChngL
             allPrd['totShare'][pid] = totShareL  #[:len(wghtL)] = totShareL
             #allPrd.to_csv(r"D:\data\csvCalc\allprd1.csv")
-
 
     allPrd_divi = allPrd.copy()
     allPrd_divi['o'] = allPrd['o']/allPrd['wght']
@@ -190,7 +212,7 @@ def calcWght(dir, allPrd):
     allPrd_divi['l'] = allPrd['l']/allPrd['wght']
     allPrd_divi['c'] = allPrd['c']/allPrd['wght']
     allPrd_divi['p'] = allPrd['p']/allPrd['wght']
-    allPrd_divi['swapRt'] = allPrd['vol']/allPrd['freeShare']
+    #allPrd_divi['swapRt'] = (allPrd['vol']/allPrd['freeShare']) / 100
 
     return allPrd, allPrd_divi
 
@@ -222,17 +244,47 @@ def calcWght(dir, allPrd):
     '''
 
 
-def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h10m
+
+#'''
+allPrdNoDivi = readHistCsv()
+allPrdNoDivi, allPrd_divi = calcWght('D:\\data\\weightcsv\\ql\\', allPrdNoDivi)
+allPrdNoDivi.to_csv('D:\data\csvCalc\pd.csv')
+allPrd_divi.to_csv('D:\data\csvCalc\pd_divi.csv')
+#'''
+
+def fgrAllPrd( allPrdK, allPrdKM, allPrdKY, output ): # h15 lPost  hPost at930 l1019P h10m
     allPrdKM.set_index(['pid','y', 'm'], inplace=True)
     allPrdKY.set_index(['pid','y'], inplace=True)
     allPrdK.set_index(['pid','date'], inplace=True)
 
-    L12 = allPrdKY.query('y==2012')[['l','lDate']].reset_index().set_index('pid')
-    L12.columns = ['y','L12','lDate']
-    L13 = allPrdKY.query('y==2013')[['l','lDate']].reset_index().set_index('pid')
-    L13.columns = ['y','L13','lDate']
-    L14 = allPrdKY.query('y==2014')[['l','lDate']].reset_index().set_index('pid')
-    L14.columns = ['y','L14','lDate']
+    HLy = {}
+    for i in range(8):
+        y = 2008+i
+        HLy['H%4d'%y] = allPrdKY.query('y==2008')[['h','hDate']].reset_index().set_index('pid')
+        HLy['H%4d'%y].columns = ['y','H%4d'%y,'hDate']
+        HLy['L%4d'%y] = allPrdKY.query('y==2008')[['l','lDate']].reset_index().set_index('pid')
+        HLy['L%4d'%y].columns = ['y','L%4d'%y,'lDate']
+    '''
+    H2008 = allPrdKY.query('y==2008')[['h','hDate']].reset_index().set_index('pid')
+    H2008.columns = ['y','H2008','hDate']
+    L2008 = allPrdKY.query('y==2008')[['l','lDate']].reset_index().set_index('pid')
+    L2008.columns = ['y','L2008','lDate']
+    L2009 = allPrdKY.query('y==2009')[['l','lDate']].reset_index().set_index('pid')
+    L2009.columns = ['y','L2009','lDate']
+    L2010 = allPrdKY.query('y==2010')[['l','lDate']].reset_index().set_index('pid')
+    L2010.columns = ['y','L2010','lDate']
+    L2011 = allPrdKY.query('y==2011')[['l','lDate']].reset_index().set_index('pid')
+    L2011.columns = ['y','L2011','lDate']
+    L2012 = allPrdKY.query('y==2012')[['l','lDate']].reset_index().set_index('pid')
+    L2012.columns = ['y','L2012','lDate']
+    L2013 = allPrdKY.query('y==2013')[['l','lDate']].reset_index().set_index('pid')
+    L2013.columns = ['y','L2013','lDate']
+    L2014 = allPrdKY.query('y==2014')[['l','lDate']].reset_index().set_index('pid')
+    L2014.columns = ['y','L2014','lDate']
+    H2015 = allPrdKY.query('y==2015')[['h','hDate']].reset_index().set_index('pid')
+    H2015.columns = ['y','H2015','hDate']
+    '''
+
     H8 = allPrdKM.query('y==2015 and m==8')[['h','hDate']].reset_index().set_index('pid')
     H8.columns = ['y','m','H8','hDate']
 
@@ -245,8 +297,13 @@ def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h1
     __L789 = _L789.groupby(level=0)['l'].min()
     #__L789.name = 'L789'
     L789 = pd.DataFrame({'L789':__L789}).reset_index().set_index('pid')
-    
-    _H10P = allPrdKM.query('(y==2015 and m==10) or (y==2015 and m==11)')[['h','hDate']]
+
+    _L1112 = allPrdKM.query('(y==2015 and m==11) or (y==2015 and m==12)')[['l','lDate']]
+    __L1112 = _L1112.groupby(level=0)['l'].min()
+    #__L1112.name = 'L1112'
+    L1112 = pd.DataFrame({'L1112':__L1112}).reset_index().set_index('pid')
+
+    _H10P = allPrdKM.query('(y==2015 and m==10) or (y==2015 and m==11) or (y==2015 and m==12)')[['h','hDate']]
     __H10P = _H10P.groupby(level=0)['h'].max()
     #__H10P.name = 'H10P'
     H10P = pd.DataFrame({'H10P':__H10P}).reset_index().set_index('pid')
@@ -255,6 +312,14 @@ def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h1
     C930.columns = ['date','C930']
     L820 = allPrdK.query('date==20150820')[['l']].reset_index().set_index('pid')
     L820.columns = ['date','L820']
+
+    rcntKeyLowDay = ['1021', '1103']
+    Ldt = {}
+    for d in rcntKeyLowDay:
+        d = '2015%4d'%d
+        _Ldt = allPrdK.query('date==20151021 or date==20151022')[['l']]
+        __Ldt = _Ldt.groupby(level=0)['l'].min()
+        Ldt['L%4d'%d] = pd.DataFrame({'L%4d'%d:__Ldt}).reset_index().set_index('pid')
 
     _L1021 = allPrdK.query('date==20151021 or date==20151022')[['l']]
     __L1021 = _L1021.groupby(level=0)['l'].min()
@@ -271,11 +336,16 @@ def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h1
     #__L1116.name = 'L1116'
     L1116 = pd.DataFrame({'L1116':__L1116}).reset_index().set_index('pid')
 
-    C = allPrdK.query('date==20151120')[['c']].reset_index().set_index('pid')
+    _L1215 = allPrdK.query('date==20151114 or date==20151115')[['l']]
+    __L1215 = _L1215.groupby(level=0)['l'].min()
+    #__L1215.name = 'L1215'
+    L1215 = pd.DataFrame({'L1215':__L1215}).reset_index().set_index('pid')
+
+    C = allPrdK.query('date==20151119')[['c']].reset_index().set_index('pid')
     C.columns = ['date','C']
 
     vDf = pd.concat( [ L12[['L12']], L13[['L13']], L14[['L14']], H8[['H8']], C930[['C930']], L820[['L820']], H456, L789, H10P, L1021, L1103, L1116, C ], axis=1, join='outer')
-    vDf.to_csv(r'D:\data\csvCalc\vDf.csv')
+    vDf.to_csv(r'D:\data\csvCalc\vDf%s.csv'%output)
     #vDf = pd.merge(L12,L13,L14,H8,C930,L820,on='pid',how='outer')
 
     grped = allPrdKM.groupby(level=0) #'pid'
@@ -316,6 +386,7 @@ def fgrAllPrd( allPrdK, allPrdKM, allPrdKY ): # h15 lPost  hPost at930 l1019P h1
 
     return allPrd, allPrd_divi
 
+'''
 wtchL = getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
 wtchLAll = getWatchLst_ThsExport(r'D:\data\ths\zixuan.txt')
 wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan1.txt')
@@ -326,6 +397,17 @@ wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan5')
 wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan6')
 wtchLAll += getWatchLst_ThsExport(r'D:\data\ths\zixuan7')
 wtchLAll = list(set(wtchL))
+'''
+
+t = time.clock()
+allPrd =  pd.read_csv( r'D:\data\csvCalc\pdHK_divi.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+#allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdHK_divi_km.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
+#allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdHK_divi_ky.csv', index_col=['pid', 'y', 'date'], encoding='gbk')
+
+allPrdK = allPrd.sort().reset_index()
+allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdHK_divi_km.csv', index_col=['pid', 'date'] ).sort().reset_index()
+allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdHK_divi_ky.csv', index_col=['pid', 'date'] ).sort().reset_index()
+allPrdView = fgrAllPrd(allPrdK, allPrdKM, allPrdKY, 'HK')
 
 t = time.clock()
 allPrd =  pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'y', 'm', 'date'], encoding='gbk')
@@ -335,14 +417,9 @@ allPrd =  pd.read_csv( r'D:\data\csvCalc\pdA_divi.csv', index_col=['pid', 'y', '
 allPrdK = allPrd.sort().reset_index()
 allPrdKM = pd.read_csv( r'D:\data\csvCalc\pdA_divi_km.csv', index_col=['pid', 'date'] ).sort().reset_index()
 allPrdKY = pd.read_csv( r'D:\data\csvCalc\pdA_divi_ky.csv', index_col=['pid', 'date'] ).sort().reset_index()
-allPrdView = fgrAllPrd(allPrdK, allPrdKM, allPrdKY)
+allPrdView = fgrAllPrd(allPrdK, allPrdKM, allPrdKY, 'A')
 
 
-
-allPrd = readHistCsv()
-allPrd, allPrd_divi = calcWght('D:\\data\\weightcsv\\ql\\', allPrd)
-allPrd.to_csv('D:\data\csvCalc\pdA.csv')
-allPrd_divi.to_csv('D:\data\csvCalc\pdA_divi.csv')
 
 print('read allPrd csv time: %.03f' % (time.clock()-t) )
 

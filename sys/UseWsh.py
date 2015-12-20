@@ -1,3 +1,5 @@
+# coding=utf-8
+
 '''
 python创建Wscript.Shell进行自动化2008-04-17 13:02
 
@@ -91,6 +93,11 @@ import time
 
 execpath = 'cmd.exe'
 wsh = win32com.client.Dispatch("Wscript.Shell")
+
+wsh.run('calc')
+wsh.AppActivate('Calculator') #计算器')
+wsh.AppActivate('Windows Live Messenger')
+
 #wshe = wsh.Exec(execpath)
 wshe = wsh.run('cmd')
 pid = wshe.ProcessID
@@ -102,7 +109,4 @@ wsh.SendKeys("%a")
 wsh.SendKeys("10.0.0.1")
 wsh.SendKeys("{CAPSLOCK}")
 
-wsh.run('calc')
-wsh.AppActivate('计算器')
-wsh.AppActivate('Windows Live Messenger')
 
